@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, shrink-to-fit=no">
+    <title>AI Voice TTS - Google Authorization</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="../assets/images/logo/favicon_120x120.png">
+    <link rel="apple-touch-icon" href="../assets/images/logo/favicon_120x120.png">
+
+    <!-- page css -->
+	<link href="assets/vendors/datatables/dataTables.bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Core css -->
+    <link href="assets/css/app.min.css" rel="stylesheet">
+    <link rel="stylesheet" media="all" type="text/css" href="assets/vendors/fontawesome/css/font-awesome-5-all.min.css" />
+    
+    <!-- page js -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+</head>
+
+<body>
+	<div id="page-loading" class="d-none align-items-center justify-content-center position-absolute w-100 h-100" style="z-index:3000;">
+	    <div class="spinner-border" role="status">
+	    	<span class="sr-only">Loading...</span>
+	    </div>
+	</div>
+    <div id="page-content" class="layout">
+        <div class="vertical-layout">
+
+            <!-- Header START -->
+            <div class="w-100 header-text-dark header-nav layout-vertical">
+                <div class="header-nav-wrap">
+                    <div class="header-nav-left">
+                        <div class="d-none header-nav-item desktop-toggle">
+                            <div class="header-nav-item-select cursor-pointer">
+                                <i class="nav-icon feather icon-menu icon-arrow-right"></i>
+                            </div>
+                        </div>
+                        <div class="d-none header-nav-item mobile-toggle">
+                            <div class="header-nav-item-select cursor-pointer">
+                                <i class="nav-icon feather icon-menu icon-arrow-right"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="header-nav-right">
+                        <div class="header-nav-item">
+                            <div class="dropdown header-nav-item-select nav-profile" >
+                                <div class="toggle-wrapper" id="nav-profile-dropdown" data-bs-toggle="dropdown">
+                                    <div class="avatar avatar-circle avatar-image" style="width: 35px; height: 35px; line-height: 35px;">
+                                    	<img src="assets/images/avatars/noProfilePicIcon_640x640.png" alt="User Profile Pic">
+                                    </div>
+                                    <span class="fw-bold mx-1 d-none d-sm-block">App&nbsp;Developer</span>
+                                    <i class="feather icon-chevron-down"></i>
+                                </div>
+                                <div class="dropdown-menu dropdown-menu-end">
+                                    <div class="nav-profile-header">
+                                       <div class="d-flex align-items-center">
+                                            <div class="avatar avatar-circle avatar-image">
+                                            	<img src="assets/images/avatars/noProfilePicIcon_640x640.png" alt="User Profile Pic">
+                                            </div>
+                                            <div class="d-flex flex-column ms-1">
+                                                <span class="fw-bold text-dark">App&nbsp;Developer</span>
+                                                <span class="font-size-sm">dev@aivoicetts.com</span>
+                                            </div>
+                                       </div>
+                                    </div>
+                                    <a href="javascript:void(0)" class="dropdown-item">
+                                       <div class="d-flex align-items-center">
+                                           <i class="font-size-lg me-2 feather icon-user"></i>
+                                           <span>Profile</span>
+                                        </div>
+                                    </a>
+                                    <a href="javascript:void(0)" class="dropdown-item">
+                                       <div class="d-flex align-items-center"><i class="font-size-lg me-2 feather icon-power"></i>
+                                        <span>Sign Out</span>
+                                    </div>
+                                    </a>
+                                 </div>
+                            </div>
+                        </div>     
+                    </div>
+                </div>
+            </div>   
+            <!-- Header END -->
+			
+			<!-- Content START -->
+			<div class="content" style="margin-left:0px !important;">
+				<div class="main">
+					<div class="page-header">
+						<h4 class="page-title" id="workingGoogleSheetName">Google Authorization</h4>
+					</div>
+					<div class="card">
+						<div class="card-body">
+                            <div class="m-2">
+                                <div class="d-flex justify-content-center mt-3">
+                                    <div class="text-center logo">
+                                        <img alt="logo" class="img-fluid" src="assets/images/logo/googleLogo.png" style="height: 70px;">
+                                    </div>
+                                </div>
+								<div class="row" id="startAuthorizationRow">
+									<div class="text-center mt-3">
+										<h3 class="fw-bolder">Authorize Google Account</h3>
+										<p class="text-muted">Sign in with the Google Admin Email listed below to get a new refresh token.</p>
+									</div>
+									<div class="form-group mb-3">
+										<label class="form-label">Google Cloud Project ID:</label>
+										<input disabled type="text" class="form-control" id="appID" name="appID" value="" />
+									</div>
+									<div class="form-group mb-3">
+										<label class="form-label">Client ID:</label>
+										<input disabled type="text" class="form-control" id="clientID" name="clientID" value="" />
+									</div>
+									<div class="form-group mb-3">
+										<label class="form-label">Google Admin Email:</label>
+										<input disabled type="text" class="form-control" id="googleAdminEmail" name="googleAdminEmail" value="" />
+									</div>
+									<div class="mt-3">
+										<button disabled type="button" class="btn btn-primary w-100" id="googleAuthorizeButton" onclick="startGoogleAuthorization();">Authorize</button>
+									</div>
+								</div>
+								<div class="row" id="authorizationCompleteRow" style="display:none;">
+									<div class="text-center mt-3">
+										<h3 class="fw-bolder">Authorized!</h3>
+										<p class="text-muted">Copy the refresh token below and paste it in the "settings.json" file.</p>
+									</div>
+									<div class="form-group mb-3">
+										<label class="form-label">Refresh Token:</label>
+										<input disabled type="text" class="form-control" id="refreshToken" name="refreshToken" value="" />
+									</div>
+									<div class="mt-3">
+										<button type="button" class="btn btn-primary w-100" id="homeButton" onclick="window.location.href='/';">Home</button>
+									</div>
+								</div>
+                            </div>
+                        </div>
+					</div>
+				</div>
+				<!-- Footer START -->
+				<div class="footer">
+					<div class="footer-content">
+						<p class="mb-0">Copyright © 2024 AI Voice TTS. All rights reserved.</p>
+						<span>
+							<a target="_blank" href="javascript:void(0)" class="text-gray me-3">Term &amp; Conditions</a>
+							<a target="_blank" href="javascript:void(0)" class="text-gray">Privacy Policy</a>
+						</span>
+					</div>
+				</div>
+				<!-- Footer End -->
+			</div>
+			<!-- Content END -->
+			
+			<!-- Core Vendors JS -->
+			<script src="assets/js/vendors.min.js"></script>
+			
+			<!-- page js -->
+			
+			<!-- Core JS -->
+			<script src="assets/js/app.min.js"></script>
+
+			<!-- Custom JS -->
+			<script type="text/javascript">
+				var googleAuthorizationURL = "";
+
+				$(document).ready(function() {
+					// Loading bar animation stuff
+					window.onpageshow = function(){
+						$("#page-content").show();
+						$("#page-loading").removeClass("d-flex").addClass("d-none");
+					};
+					window.onbeforeunload = function(){
+						$("#page-content").fadeOut("fast", function() {
+							// Animation complete.
+						});
+						$("#page-loading").removeClass("d-none").addClass("d-flex");
+					};
+
+					// Reads the settings.json file for Google Credential/Authorization Data
+					try {
+						$.getJSON('settings.json', function(data) {
+							// JSON result in 'data' variable
+
+							// Set values for js variables
+							var appID = data.googleCloudAppCredentials.appID;
+							var clientID = data.googleCloudAppCredentials.client_id;
+							var googleAdminEmail = data.googleCloudAppCredentials.googleAdminEmail;
+							
+							// Check for Authorization Code ('code' paramater automatically added by Google after the user authorizes)
+							let googleAuthorizationCode = null;
+							try {
+								var queryString = window.location.search;
+								var urlParams = new URLSearchParams(queryString);
+								
+								googleAuthorizationCode = urlParams.has('code') ? urlParams.get('code') : null;
+							} catch (err) { console.log('Unable to check URL parameters for Authorization Code.\n' + err); }
+
+							// If there is a 'code' paramater, compare the 'state' parameter with the session one, and then upgrade the code to get tokens
+							if (googleAuthorizationCode) {
+								console.log('User Authorization detected. Performing security check...')
+
+								// Check State (Security Measure)
+								let stateCheckPassed = false;
+								try {
+									var queryString = window.location.search;
+									var urlParams = new URLSearchParams(queryString);
+									
+									let parameterState = urlParams.has('state') ? urlParams.get('state') : null;
+									let sessionState = sessionStorage.getItem('state');
+									stateCheckPassed = (parameterState == sessionState);
+								} catch (err) { console.log('Unable to read URL parameters.\n' + err); }
+
+								if (stateCheckPassed) {
+									// Hide the normal Authorization page content and show the Authorization Complete content
+									$('#startAuthorizationRow').hide();
+									$('#authorizationCompleteRow').show();
+
+									console.log('Check passed! Generating Token(s)...');
+									try { sessionStorage.removeItem('state'); }
+									catch (err) { }
+
+									// Use AJAX to exchange the Authorization Code for Token Data
+									$.ajax({
+										async: true,
+										url: "https://oauth2.googleapis.com/token",
+										data: {
+											code : googleAuthorizationCode,
+											client_id : clientID,
+											client_secret : data.googleCloudAppCredentials.client_secret,
+											redirect_uri : window.location.protocol + '//' + window.location.host + '/authorize-google.html',
+											grant_type : 'authorization_code'
+										},
+										type: 'POST',
+										success: function(responseData) {
+											// console.log('Response:\n' + JSON.stringify(responseData));
+
+											// The 'responseData' returned should be a JSON that contains the 'refresh_token' to give to the user
+											let refreshToken = null;
+											try { refreshToken = responseData.refresh_token;}
+											catch (err) { console.log('Response Data does NOT contain a Refresh Token.\n' + err); }
+
+											if (refreshToken) {
+												$('#refreshToken').val(refreshToken);
+											} else {
+												alert('No Refresh Token Found. Please revoke app access from the Google account and try again.');
+												window.location.href = '/authorize-google.html';
+											}
+										},
+										error: function(err) {
+											console.log('Unable to exchange Authorization Code with Google.\n' + JSON.stringify(err));
+											alert('Unable to request Refresh Token from Google. Please try again.');
+										}
+									});
+								} else { console.log('Check failed! Unauthorized attempt!') }
+							} else {
+								// Create 'state' to save to Session
+								var state = getSecureRandom();
+								sessionStorage.setItem("state", state);
+
+								// Show the public app values to user and build the full Google Authorization URL
+								try {
+									$('#appID').val(appID);
+									$('#clientID').val(clientID);
+									$('#googleAdminEmail').val(googleAdminEmail);
+
+									googleAuthorizationURL = 'https://accounts.google.com/o/oauth2/v2/auth' +
+										'?client_id=' + clientID +
+										'&scope=openid profile email https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/spreadsheets' + 
+										'&access_type=offline' +
+										'&include_granted_scopes=true' + 
+										'&response_type=code' + 
+										'&state=' + state + 
+										'&redirect_uri=' + encodeURIComponent(window.location.protocol + '//' + window.location.host + '/authorize-google.html');
+									
+									// console.log('URL:\n' + googleAuthorizationURL);
+
+									console.log('Ready to authorize!');
+
+									// Now the URL is built, enable the Authorize button
+									$('#googleAuthorizeButton').prop('disabled', false);
+								} catch (err) { console.log('Unable to process Google Credential/Authorization Data and URL.\n' + err); }
+							}
+						});
+					} catch (err) { 
+						console.log('Unable fully process App Settings.\n' + err);
+						alert('App Settings Error!');
+					}
+				});
+
+				function getSecureRandom() {
+					// Allocate space for four 32-bit numbers
+					const randoms = new Uint32Array(4);
+
+					// Get random values
+					window.crypto.getRandomValues(randoms);
+
+					// Convert each number to string in base 32, then join together
+					return Array.from(randoms).map(elem => elem.toString(32)).join("");
+				}
+
+				function startGoogleAuthorization() {
+					console.log('Starting Google Authorization...')
+					window.location.href = googleAuthorizationURL;
+				}
+			</script>
+		
+        </div>
+    </div>
+
+</body>
+
+</html>
