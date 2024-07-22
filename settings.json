@@ -1,0 +1,14 @@
+{
+  "googleCloudAppCredentials": {
+    "appID": "ai-voice-tts",
+    "apiKey": "AIzaSyDGTsKBFckpY-Fpq5FE8hgJ0SjdaUi5mEA",
+    "client_id": "799129602700-5orrlusg6pj13sbf2h1vgcjlr26fjnbb.apps.googleusercontent.com",
+    "client_secret": "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",
+    "googleAdminEmail": "errorcantbeshown@gmail.com",
+    "refresh_token": "1//05ToBLLwI67EpCgYIARAAGAUSNwF-L9Irr_7gxmJIF-IxkmUorcIP217FeUs9DZ-j-oh27GslusnjrFijJXsnqSGT_1rQDDFj4NY"
+  },
+  "googleDriveDataLocations": {
+    "userInfoSpreadsheetName": "AI Voice TTS Database",
+    "userInfoSheetID": "1RUlw28DejwmGsBVHLOg-BQl49YPZV71s-pWUamatUJ4"
+  }
+}
