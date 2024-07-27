@@ -392,9 +392,35 @@
                             speechTextContainer.classList.add("normalTTSBackground");
                         }, 1000);
                     });
-                    speechAudio.play();
+                    var speechPlayPromise = speechAudio.play();
+                    if (speechPlayPromise !== undefined) {
+                        speechPlayPromise.then(_ => {
+                            // Autoplay started!
+                        }).catch(error => {
+                            // Autoplay was prevented.
+                            console.error(error);
+                            speechTextContainer.classList.toggle('fade');
+                            setTimeout(function() {
+                                speechTextContainer.classList.remove("juliBanTTSBackground");
+                                speechTextContainer.classList.add("normalTTSBackground");
+                            }, 1000);
+                        });
+                    }
                 });
-                alertAudio.play();
+                var alertPlayPromise = alertAudio.play();
+                if (alertPlayPromise !== undefined) {
+                    alertPlayPromise.then(_ => {
+                        // Autoplay started!
+                    }).catch(error => {
+                        // Autoplay was prevented.
+                        console.error(error);
+                        speechTextContainer.classList.toggle('fade');
+                        setTimeout(function() {
+                            speechTextContainer.classList.remove("juliBanTTSBackground");
+                            speechTextContainer.classList.add("normalTTSBackground");
+                        }, 1000);
+                    });
+                }
             } else {
                 // Build options array needed for Elevenlabs API request
                 var elevenlabsOptions = {
