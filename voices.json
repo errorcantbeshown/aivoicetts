@@ -1,0 +1,47 @@
+{
+  "hifumi": {
+    "voice_id": "11nykyL7h0pYd7hh1lA5",
+    "voice_settings": "{\"use_speaker_boost\":true,\"stability\":0.5,\"style\":0.4,\"similarity_boost\":0.75}",
+    "model_id":"eleven_multilingual_v2"
+  },
+  "mayor": {
+    "voice_id": "19AzCRtlVnWKYSa1c4n2",
+    "voice_settings": "{\"use_speaker_boost\":true,\"stability\":0.5,\"style\":0.4,\"similarity_boost\":0.75}",
+    "model_id":"eleven_multilingual_v2"
+  },
+  "will": {
+    "voice_id": "bIHbv24MWmeRgasZH58o",
+    "voice_settings": "{\"use_speaker_boost\":true,\"stability\":0.5,\"style\":0.0,\"similarity_boost\":0.75}",
+    "model_id":"eleven_multilingual_v2"
+  },
+  "skeletor": {
+    "voice_id": "ZFUDJoAF72mngWJrCAn6",
+    "voice_settings": "{\"use_speaker_boost\":true,\"stability\":0.5,\"style\":0.4,\"similarity_boost\":0.75}",
+    "model_id":"eleven_multilingual_v2"
+  },
+  "child": {
+    "voice_id": "0m2tDjDewtOfXrhxqgrJ",
+    "voice_settings": "{\"stability\":0.5,\"similarity_boost\":0.75}",
+    "model_id":"eleven_turbo_v2"
+  },
+  "emo": {
+    "voice_id": "wVOQaU8CfoRJqCWsxoLv",
+    "voice_settings": "{\"stability\":0.5,\"similarity_boost\":0.75}",
+    "model_id":"eleven_turbo_v2"
+  },
+  "sobbing": {
+    "voice_id": "wcIrsZmi758yTtAxuW4l",
+    "voice_settings": "{\"stability\":0.15,\"similarity_boost\":0.75}",
+    "model_id":"eleven_turbo_v2"
+  },
+  "trailer": {
+    "voice_id": "FF7KdobWPaiR0vkcALHF",
+    "voice_settings": "{\"stability\":0.5,\"similarity_boost\":0.75}",
+    "model_id":"eleven_turbo_v2"
+  },
+  "whisper": {
+    "voice_id": "geVuXdUpU0lgUukWJCUE",
+    "voice_settings": "{\"stability\":0.5,\"similarity_boost\":0.75}",
+    "model_id":"eleven_turbo_v2"
+  }
+}
