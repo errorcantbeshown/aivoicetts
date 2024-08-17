@@ -1,400 +1,520 @@
 <!DOCTYPE html>
 <html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, shrink-to-fit=no">
+        <title>AI Voice TTS - Widget</title>
 
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, shrink-to-fit=no">
-    <title>AI Voice TTS - Widget</title>
+        <!-- Favicon -->
+        <link rel="icon" type="image/png" href="../assets/images/logo/favicon_120x120.png">
+        <link rel="apple-touch-icon" href="../assets/images/logo/favicon_120x120.png">
 
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" href="../assets/images/logo/favicon_120x120.png">
-    <link rel="apple-touch-icon" href="../assets/images/logo/favicon_120x120.png">
+        <!-- page css -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+        
+        <!-- Core css -->
+        <link href="../assets/css/app.min.css" rel="stylesheet">
+        <link rel="stylesheet" media="all" type="text/css" href="../assets/vendors/fontawesome/css/font-awesome-5-all.min.css" />
+        
+        <!-- page js -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
 
-    <!-- page css -->
-	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
-    
-    <!-- Core css -->
-    <link href="../assets/css/app.min.css" rel="stylesheet">
-    <link rel="stylesheet" media="all" type="text/css" href="../assets/vendors/fontawesome/css/font-awesome-5-all.min.css" />
-    
-    <!-- page js -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+        <!-- custom css -->
+        <style>
+            body {
+                background-color: transparent;
+            }
+            #alertBox {
+                opacity: 1;
+                transition: opacity 1s; 
+            }
+            #alertBox.fade {
+                opacity: 0;
+            }
+            .normalTTSBackground {
+                background: url('../assets/images/rgb-audio-wave-animation.gif') center no-repeat transparent;
+                background-size: cover;
+            }
+            .juliBanTTSBackground {
+                background: url('../assets/images/rear-view-of-police-cars-chasing.gif') center no-repeat transparent;
+                background-size: cover;
+            }
+        </style>
+    </head>
 
-    <!-- custom css -->
-    <style>
-        body {
-            background-color: transparent;
-        }
-        #alertBox {
-            opacity: 1;
-            transition: opacity 1s; 
-        }
-        #alertBox.fade {
-            opacity: 0;
-        }
-        .normalTTSBackground {
-            background: url('../assets/images/rgb-audio-wave-animation.gif') center no-repeat transparent;
-            background-size: cover;
-        }
-        .juliBanTTSBackground {
-            background: url('../assets/images/rear-view-of-police-cars-chasing.gif') center no-repeat transparent;
-            background-size: cover;
-        }
-    </style>
-</head>
-
-<body>
-    <!-- Loading START -->
-	<div id="page-loading" class="d-none align-items-center justify-content-center position-absolute w-100 h-100" style="z-index:3000;">
-	    <div class="spinner-border" role="status">
-	    	<span class="sr-only">Loading...</span>
-	    </div>
-	</div>
-    <!-- Loading END -->
-
-    <!-- Content START -->
-    <div id="page-content">
-        <div class="normalTTSBackground fade" id="alertBox" style="width: 100%;height: 100vw;">
-            <div class="row d-flex justify-content-center align-items-center bd-highlight h-100">
-                <font class="text-center text-white" id="speechText">[Speech Text Goes Here]</font>
+    <body>
+        <!-- Loading START -->
+        <div id="page-loading" class="d-none align-items-center justify-content-center position-absolute w-100 h-100" style="z-index:3000;">
+            <div class="spinner-border" role="status">
+                <span class="sr-only">Loading...</span>
             </div>
         </div>
-    </div>
-    <!-- Content END -->
+        <!-- Loading END -->
 
-    <!-- Core Vendors JS -->
-    <script src="../assets/js/vendors.min.js"></script>
-    
-    <!-- page js -->
-    <script async defer src="https://apis.google.com/js/api.js"></script>
-    
-    <!-- Core JS -->
-    <script src="../assets/js/app.min.js"></script>
+        <!-- Content START -->
+        <div id="page-content">
+            <div class="normalTTSBackground fade" id="alertBox" style="width: 100%;height: 100vw;">
+                <div class="row d-flex justify-content-center align-items-center bd-highlight h-100">
+                    <font class="text-center text-white" id="speechText">[Speech Text Goes Here]</font>
+                </div>
+            </div>
+        </div>
+        <!-- Content END -->
 
-    <!-- Custom JS -->
-    <script src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js' type='text/javascript'></script>
-    <script type="text/javascript">
-
-        // Initialize Global Variables
-        var appID = null;
-        var developerKey = null;
-        var userInfoSheetID = null;
-        var adminAccessToken = null;
-        var userInfoValues = null;
-        var userID = null;
-        var userName = null;
-        var userSLToken = null;
-        var userELToken = null;
-        var cheererUserName = "Anonymous";
+        <!-- Core Vendors JS -->
+        <script src="../assets/js/vendors.min.js"></script>
         
-        $(document).ready(function() {
-            // TODO For Testing
-            processSpeechText();
-            window.addEventListener('resize', processSpeechText);
+        <!-- page js -->
+        <script async defer src="https://apis.google.com/js/api.js"></script>
+        
+        <!-- Core JS -->
+        <script src="../assets/js/app.min.js"></script>
 
-            const queryString = window.location.search;
-            const urlParams = new URLSearchParams(queryString);
-            userID = urlParams.has('u') ? urlParams.get('u') : null;
+        <!-- Custom JS -->
+        <script src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js' type='text/javascript'></script>
+        <script type="text/javascript">
 
-            // Check userID
-            if (userID) {
-                // Loading bar animation stuff
-                window.onpageshow = function(){
-                    $("#page-content").show();
-                    $("#page-loading").removeClass("d-flex").addClass("d-none");
-                };
-                window.onbeforeunload = function(){
-                    $("#page-content").fadeOut("fast", function() {
-                        // Animation complete.
-                    });
-                    $("#page-loading").removeClass("d-none").addClass("d-flex");
-                };
+           // Initialize Global Variables
+           var appID = null;
+            var developerKey = null;
+            var userInfoSheetID = null;
+            var adminAccessToken = null;
+            var userInfoValues = null;
+            var userID = null;
+            var userName = null;
+            var userSLToken = null;
+            var userELToken = null;
+            var cheererUserName = "Anonymous";
+            var skeletorLaugh = " nyah!";
+            const skeletorLaughs = [" hehehehehehehehehehehehehehehehehehhhhhh!", " heh - - - heheheheh - hehehehehehahahahaaaa!",
+                " hehehahahahahahah!", " Nyahahahah!", " hahahahahahahahahaaaaaaaaaahhhhh"
+            ];
+            var voices;
+            var voiceVolume = 1.0;
 
-                // Reads the settings.json file for Google Credential Data and process Google API functions
-                try {
-                    $.getJSON('../settings.json', function(data) {
-                        // JSON result in 'data' variable
+            // Prep Event Queue
+            const eventQueue = [];
+            let isProcessing = false;
 
-                        // Set values for global js variables
-                        appID = data.googleCloudAppCredentials.appID;
-                        developerKey = data.googleCloudAppCredentials.apiKey;
-                        userInfoSheetID = data.googleDriveDataLocations.userInfoSheetID;
-
-                        let adminAccessTokenExpiration = null;
-                        try { 
-                            // Check Access Token Expiration
-                            adminAccessTokenExpiration = parseInt(sessionStorage.getItem("adminAccessTokenExpiration"));
-                            if ((Date.now()/1000) > adminAccessTokenExpiration - 300) {
-                                console.log('Google Access Token in Session is expired.');
-
-                                // If the Access Token is expired, remove the expiration (and try to remove the access token) from the session
-                                sessionStorage.removeItem("adminAccessTokenExpiration");
-                                try { sessionStorage.removeItem("adminAccessToken"); }
-                                catch (err) { }
-                            } else { adminAccessToken = sessionStorage.getItem("adminAccessToken"); }
-                        } catch (err) { console.log('Unable to retrieve Google Access Token from Session.\n' + err); }
-                        if (!adminAccessToken) {
-                            // Get new Access Token from Refresh Token
-                            console.log('Refreshing Access Token...');
-                            refreshAccessToken(data.googleCloudAppCredentials.client_id, data.googleCloudAppCredentials.client_secret, data.googleCloudAppCredentials.refresh_token).then(function(data) {
-                                console.log('New Access Token Recieved!');
-
-                                // Sets new Access Token to global js variable, then saves the token and its expiration to the session
-                                adminAccessToken = data.access_token;
-                                sessionStorage.setItem("adminAccessToken", adminAccessToken);
-                                sessionStorage.setItem("adminAccessTokenExpiration", (Date.now()/1000) + data.expires_in);
-                                
-                                // Load Sheet Reading Client to Search Database
-                                loadSheetReadingClient();
-                            }).catch(function(err) {
-                                console.error('Unable to get new Access Token from Refresh Token.\n' + err);
-                            });
-                        } else {
-                            // Load Sheet Reading Client to Search Database
-                            loadSheetReadingClient();
-                        }
-                    });
-                } catch (err) { 
-                    console.error('Unable fully process App Settings.\n' + err);
-                    alert('App Settings Error!');
+            function processEventQueue() {
+                if (isProcessing || eventQueue.length === 0) {
+                    return;
                 }
-            } else {
-                console.error('Invalid or missing User ID.');
-                //alert('Error 400.');
-            }
-        });
 
-        function refreshAccessToken(clientID, clientSecret, refreshToken) {
-            return new Promise(function(resolve, reject) {
-                $.ajax({
-                    url: 'https://accounts.google.com/o/oauth2/token',
-                    data: {
-                        client_id: clientID,
-                        client_secret: clientSecret,
-                        refresh_token: refreshToken,
-                        grant_type: 'refresh_token'
-                    },
-                    type: 'POST',
-                    dataType: 'json',
-                    success: function(responseData) {
-                        resolve(responseData);
-                    },
-                    error: function(err) {
-                        reject(err);
+                isProcessing = true;
+                const event = eventQueue.shift();
+                handleEvent(event);
+            }
+
+            function handleEvent(event) {
+                return new Promise((resolve, reject) => {
+                    try {
+                        // Here you could add more event handling functions as needed
+                        Promise.all([
+                            handleStreamLabsTwitchEvent(event)
+                            // Add other functions if you have more event types
+                        ]).then(resolve).catch(reject);
+                    } catch (error) {
+                        reject(error);
+                        isProcessing = false;
+                        processEventQueue(); // Process the next event in the queue
                     }
                 });
+            }
+            
+            $(document).ready(function() {
+                // TODO For Testing
+                processSpeechText();
+                window.addEventListener('resize', processSpeechText);
+
+                const queryString = window.location.search;
+                const urlParams = new URLSearchParams(queryString);
+                userID = urlParams.has('u') ? urlParams.get('u') : null;
+
+                // Check userID
+                if (userID) {
+                    // Loading bar animation stuff
+                    window.onpageshow = function(){
+                        $("#page-content").show();
+                        $("#page-loading").removeClass("d-flex").addClass("d-none");
+                    };
+                    window.onbeforeunload = function(){
+                        $("#page-content").fadeOut("fast", function() {
+                            // Animation complete.
+                        });
+                        $("#page-loading").removeClass("d-none").addClass("d-flex");
+                    };
+
+                    // Reads the voices.json file
+                    try {
+                        $.getJSON('../voices.json', function(data) {
+                            voices = data;
+                        });
+                    } catch (err) { console.error('Unable load voices.\n' + err); }
+
+                    // Reads the settings.json file for Google Credential Data and process Google API functions
+                    try {
+                        $.getJSON('../settings.json', function(data) {
+                            // JSON result in 'data' variable
+
+                            // Set values for global js variables
+                            appID = data.googleCloudAppCredentials.appID;
+                            developerKey = data.googleCloudAppCredentials.apiKey;
+                            userInfoSheetID = data.googleDriveDataLocations.userInfoSheetID;
+
+                            let adminAccessTokenExpiration = null;
+                            try { 
+                                // Check Access Token Expiration
+                                adminAccessTokenExpiration = parseInt(sessionStorage.getItem("adminAccessTokenExpiration"));
+                                if ((Date.now()/1000) > adminAccessTokenExpiration - 300) {
+                                    console.log('Google Access Token in Session is expired.');
+
+                                    // If the Access Token is expired, remove the expiration (and try to remove the access token) from the session
+                                    sessionStorage.removeItem("adminAccessTokenExpiration");
+                                    try { sessionStorage.removeItem("adminAccessToken"); }
+                                    catch (err) { }
+                                } else { adminAccessToken = sessionStorage.getItem("adminAccessToken"); }
+                            } catch (err) { console.log('Unable to retrieve Google Access Token from Session.\n' + err); }
+                            if (!adminAccessToken) {
+                                // Get new Access Token from Refresh Token
+                                console.log('Refreshing Access Token...');
+                                refreshAccessToken(data.googleCloudAppCredentials.client_id, data.googleCloudAppCredentials.client_secret, data.googleCloudAppCredentials.refresh_token).then(function(data) {
+                                    console.log('New Access Token Recieved!');
+
+                                    // Sets new Access Token to global js variable, then saves the token and its expiration to the session
+                                    adminAccessToken = data.access_token;
+                                    sessionStorage.setItem("adminAccessToken", adminAccessToken);
+                                    sessionStorage.setItem("adminAccessTokenExpiration", (Date.now()/1000) + data.expires_in);
+                                    
+                                    // Load Sheet Reading Client to Search Database
+                                    loadSheetReadingClient();
+                                }).catch(function(err) {
+                                    console.error('Unable to get new Access Token from Refresh Token.\n' + err);
+                                });
+                            } else {
+                                // Load Sheet Reading Client to Search Database
+                                loadSheetReadingClient();
+                            }
+                        });
+                    } catch (err) { 
+                        console.error('Unable fully process App Settings.\n' + err);
+                        alert('App Settings Error!');
+                    }
+                } else {
+                    console.error('Invalid or missing User ID.');
+                    //alert('Error 400.');
+                }
             });
-        }
 
-        function loadSheetReadingClient() {
-            gapi.load('client', initializeSheetReadingClient);
-        }
-        
-        function initializeSheetReadingClient() {
-            gapi.client.init({
-                apiKey: developerKey,
-                discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
-            }).then(() => {
-                console.log('Reading database...');
-                getUserInfo(userID);
-            });
-        }
+            function refreshAccessToken(clientID, clientSecret, refreshToken) {
+                return new Promise(function(resolve, reject) {
+                    $.ajax({
+                        url: 'https://accounts.google.com/o/oauth2/token',
+                        data: {
+                            client_id: clientID,
+                            client_secret: clientSecret,
+                            refresh_token: refreshToken,
+                            grant_type: 'refresh_token'
+                        },
+                        type: 'POST',
+                        dataType: 'json',
+                        success: function(responseData) {
+                            resolve(responseData);
+                        },
+                        error: function(err) {
+                            reject(err);
+                        }
+                    });
+                });
+            }
 
-        // Searches for User ID in database and sets user info variables
-        function getUserInfo(userID) {
-            gapi.client.request({
-                path: 'https://content-sheets.googleapis.com/v4/spreadsheets/' + userInfoSheetID + '/values/Sheet1!A2:D',
-                method: 'GET',
-                headers: {
-                    Authorization: 'Bearer ' + adminAccessToken,
-                },
-            }).then((response) => {
-                const values = response.result.values;
-                if (values && values.length > 0) {
-                    console.log('Database read successfully!');
+            function loadSheetReadingClient() {
+                gapi.load('client', initializeSheetReadingClient);
+            }
+            
+            function initializeSheetReadingClient() {
+                gapi.client.init({
+                    apiKey: developerKey,
+                    discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'],
+                }).then(() => {
+                    console.log('Reading database...');
+                    getUserInfo(userID);
+                });
+            }
 
-                    var userInfoIndex = findIndex(values, userID);
-                    if (userInfoIndex[0] != -1 && userInfoIndex[1] == 0) {
-                        console.log('User Info found!');
-                        userInfoValues = [ values[userInfoIndex[0]][0], values[userInfoIndex[0]][1], values[userInfoIndex[0]][2], values[userInfoIndex[0]][3] ];
-                        userName = userInfoValues[1];
-                        userSLToken = userInfoValues[2];
-                        userELToken = userInfoValues[3];
+            // Searches for User ID in database and sets user info variables
+            function getUserInfo(userID) {
+                gapi.client.request({
+                    path: 'https://content-sheets.googleapis.com/v4/spreadsheets/' + userInfoSheetID + '/values/Sheet1!A2:D',
+                    method: 'GET',
+                    headers: {
+                        Authorization: 'Bearer ' + adminAccessToken,
+                    },
+                }).then((response) => {
+                    const values = response.result.values;
+                    if (values && values.length > 0) {
+                        console.log('Database read successfully!');
 
-                        // Connect to socket
-                        const streamlabs = io(`https://sockets.streamlabs.com?token=${userSLToken}`, {transports: ['websocket']});
-                        console.log('Listening on Streamlabs...');
+                        var userInfoIndex = findIndex(values, userID);
+                        if (userInfoIndex[0] != -1 && userInfoIndex[1] == 0) {
+                            console.log('User Info found!');
+                            userInfoValues = [ values[userInfoIndex[0]][0], values[userInfoIndex[0]][1], values[userInfoIndex[0]][2], values[userInfoIndex[0]][3] ];
+                            userName = userInfoValues[1];
+                            userSLToken = userInfoValues[2];
+                            userELToken = userInfoValues[3];
 
-                        // Perform Action on event
-                        streamlabs.on('event', (eventData) => {
-                            if (eventData.for === 'twitch_account') {
-                                if (eventData.type == "bits") {
-                                    // Save Username of Cheerer
-                                    try { cheererUserName = eventData.message[0].name; }
-                                    catch (err) {
-                                        console.log("Unable to read name from Event.", err);
-                                        cheererUserName = "Anonymous"; // Reset back to "Anonymous", just in case
+                            // Connect to socket
+                            const streamlabs = io(`https://sockets.streamlabs.com?token=${userSLToken}`, {transports: ['websocket']});
+                            console.log('Listening on Streamlabs...');
+
+                            // Perform Action on event
+                            streamlabs.on('event', (eventData) => {
+                                if (eventData.for === 'twitch_account') {
+                                    eventQueue.push(eventData);
+                                    processEventQueue(); // Start processing the queue
+                                }
+                            });
+                        } else {
+                            // Handle the case were no match is found in the first column
+                            console.error('User not found! Index: ' + userInfoIndex);
+                            alert('Database Error 404.');
+                        }
+                    } else {
+                        console.error('No values found!');
+                        alert('Database Error 204.');
+                    }
+                }).catch((error) => {
+                    console.error('Error reading values:', error);
+                    alert('Database Error 500.');
+                });
+            }
+
+            // Method to return an array of indices of keyString
+            function findIndex(stringArray, keyString) {
+                // Initialising result array to -1 in case keyString is not found
+                let result = [-1, -1];
+            
+                // Iteration over all the elements of the 2-D array
+            
+                // Rows
+                for (let r = 0; r < stringArray.length; r++) {
+            
+                    // Columns
+                    for (let c = 0; c < stringArray[r].length; c++) {
+            
+                        // If keyString is found
+                        if (stringArray[r][c] == keyString) {
+                            result[0] = r;
+                            result[1] = c;
+                            return result;
+                        }
+                    }
+                }
+            
+                // If keyString is not found then -1 is returned
+                return result;
+            }
+
+            function handleStreamLabsTwitchEvent(eventData) {
+                return new Promise((resolve, reject) => {
+                    try {
+                        if (eventData.type == "bits") {
+                            // Save Username of Cheerer
+                            try { 
+                                cheererUserName = eventData.message[0].name; 
+                            } catch (err) {
+                                console.log("Unable to read name from Event.", err);
+                                cheererUserName = "Anonymous"; // Reset back to "Anonymous", just in case
+                            }
+
+                            // Check if Preview Alert
+                            var isPreview = false;
+                            try { if (eventData.message[0].isPreview == true) { isPreview = true; } } catch (err) { }
+
+                            if (!isPreview) {
+                                // Check if Test Alert
+                                var isTest = false;
+                                try { if (eventData.message[0].isTest == true) { isTest = true; } } catch (err) { }
+                                
+                                if (isTest) {
+                                    console.log("Received Test Alert.");
+                                    console.log(eventData.message);
+                                    if (parseInt(eventData.message[0].amount) >= 500) {
+                                        checkForTTS(parseInt(eventData.message[0].amount), "[mayor] " + eventData.message[0].message);
+                                    } else if (parseInt(eventData.message[0].amount) >= 100) {
+                                        checkForTTS(parseInt(eventData.message[0].amount), "[hifumi] " + eventData.message[0].message);
                                     }
-
-                                    // Check if Preview Alert
-                                    var isPreview = false;
-                                    try { if (eventData.message[0].isPreview == true) { isPreview = true; } } catch (err) { }
-
-                                    if (!isPreview) {
-                                        // Check if Test Alert
-                                        var isTest = false;
-                                        try { if (eventData.message[0].isTest == true) { isTest = true; } } catch (err) { }
-                                        
-                                        if (isTest) {
-                                            console.log("Recieved Test Alert.");
-                                            console.log(eventData.message);
-                                            if (parseInt(eventData.message[0].amount) >= 500) {
-                                                checkForTTS(parseInt(eventData.message[0].amount), "[mayor] " + eventData.message[0].message);
-                                            } else if (parseInt(eventData.message[0].amount) >= 100) {
-                                                checkForTTS(parseInt(eventData.message[0].amount), "[hifumi] " + eventData.message[0].message);
-                                            }
-                                        } else {
-                                            if (parseInt(eventData.message[0].amount) >= 100) {
-                                                checkForTTS(parseInt(eventData.message[0].amount), eventData.message[0].message);
-                                            }
-                                        }
+                                } else {
+                                    if (parseInt(eventData.message[0].amount) >= 100) {
+                                        checkForTTS(parseInt(eventData.message[0].amount), eventData.message[0].message);
                                     }
                                 }
                             }
-                        });
+                        }
+                        resolve(`Bits event processed for ${cheererUserName}`);
+                    } catch (error) {
+                        reject(error);
+                        isProcessing = false;
+                        processEventQueue(); // Process the next event in the queue
+                    }
+                });
+            }
+
+            function checkForTTS(bitsAmount, bitsMessage) {
+                // Use function to retrieve a voice name from the bits message
+                var voiceName = extractVoiceName(bitsMessage);
+                
+                // Check voice name
+                if (voiceName) {
+                    // Retrieve the corresponding voice info based off of the voice name
+                    var voiceID = null;
+                    var voiceSettings = "";
+                    var modelID = "";
+
+                    // TODO Change from using IF statements to database lookup
+                    if (voiceName.toLowerCase() == "hifumi") {
+                        voiceID = voices.hifumi.voice_id;
+                        voiceSettings = voices.hifumi.voice_settings;
+                        modelID = voices.hifumi.model_id;
+                        voiceVolume = 1.0;
+                    } else if (voiceName.toLowerCase() == "skeletor") {
+                        voiceID = voices.skeletor.voice_id;
+                        voiceSettings = voices.skeletor.voice_settings;
+                        modelID = voices.skeletor.model_id;
+                        voiceVolume = 0.25;
+                        skeletorLaugh = skeletorLaughs[(Math.floor(Math.random() * skeletorLaughs.length))]
+                        bitsMessage += skeletorLaugh;
+                    } else if (voiceName.toLowerCase() == "juli") {
+                        voiceID = "juli";
+                    } else if (bitsAmount >= 500 && voiceName.toLowerCase() == "mayor") {
+                        voiceID = voices.mayor.voice_id;
+                        voiceSettings = voices.mayor.voice_settings;
+                        modelID = voices.mayor.model_id;
+                        voiceVolume = 1.0;
+                    } else if (bitsAmount >= 500 && voiceName.toLowerCase() == "child") {
+                        voiceID = voices.child.voice_id;
+                        voiceSettings = voices.child.voice_settings;
+                        modelID = voices.child.model_id;
+                        voiceVolume = 0.5;
+                    } else if (bitsAmount >= 500 && voiceName.toLowerCase() == "emo") {
+                        voiceID = voices.emo.voice_id;
+                        voiceSettings = voices.emo.voice_settings;
+                        modelID = voices.emo.model_id;
+                        voiceVolume = 0.5;
+                    } else if (bitsAmount >= 500 && voiceName.toLowerCase() == "sobbing") {
+                        voiceID = voices.sobbing.voice_id;
+                        voiceSettings = voices.sobbing.voice_settings;
+                        modelID = voices.sobbing.model_id;
+                        voiceVolume = 0.5;
+                    } else if (bitsAmount >= 500 && voiceName.toLowerCase() == "trailer") {
+                        voiceID = voices.trailer.voice_id;
+                        voiceSettings = voices.trailer.voice_settings;
+                        modelID = voices.trailer.model_id;
+                        voiceVolume = 0.25;
+                    } else if (bitsAmount >= 500 && voiceName.toLowerCase() == "whisper") {
+                        voiceID = voices.whisper.voice_id;
+                        voiceSettings = voices.whisper.voice_settings;
+                        modelID = voices.whisper.model_id;
+                        voiceVolume = 0.75;
                     } else {
-                        // Handle the case were no match is found in the first column
-                        console.error('User not found! Index: ' + userInfoIndex);
-                        alert('Database Error 404.');
+                        // Default voice "Will"
+                        voiceID = voices.will.voice_id;
+                        voiceSettings = voices.will.voice_settings;
+                        modelID = voices.will.model_id;
+                        voiceVolume = 0.5;
                     }
-                } else {
-                    console.error('No values found!');
-                    alert('Database Error 204.');
-                }
-            }).catch((error) => {
-                console.error('Error reading values:', error);
-                alert('Database Error 500.');
-            });
-        }
+                    
+                    // Check voice id
+                    if (voiceID) {
+                        // Remove any cheers and voice name (including brackets) from the bits message
+                        var voiceText = removeCheerWords(bitsMessage).replace('[' + voiceName + ']','');
 
-        // Method to return an array of indices of keyString
-        function findIndex(stringArray, keyString) {
-            // Initialising result array to -1 in case keyString is not found
-            let result = [-1, -1];
-        
-            // Iteration over all the elements of the 2-D array
-        
-            // Rows
-            for (let r = 0; r < stringArray.length; r++) {
-        
-                // Columns
-                for (let c = 0; c < stringArray[r].length; c++) {
-        
-                    // If keyString is found
-                    if (stringArray[r][c] == keyString) {
-                        result[0] = r;
-                        result[1] = c;
-                        return result;
+                        // Convert the above text to speech using the indicated voice
+                        textToSpeech(voiceID, voiceSettings, voiceText.trim(), modelID);
+                    } else {
+                        // Handle the case where name matches no id
+                        console.error("No ID found for voice name.");
+                        isProcessing = false;
+                        processEventQueue(); // Process the next event in the queue
                     }
                 }
             }
-        
-            // If keyString is not found then -1 is returned
-            return result;
-        }
 
-        function checkForTTS(bitsAmount, bitsMessage) {
-            // Use function to retrieve a voice name from the bits message
-            var voiceName = extractVoiceName(bitsMessage);
-            
-            // Check voice name
-            if (voiceName) {
-                // Retrieve the corresponding voice id based off of the voice name
-                var voiceID = null;
-
-                // TODO Change from using IF statements to database lookup
-                if (voiceName.toLowerCase() == "hifumi") {
-                    voiceID = "11nykyL7h0pYd7hh1lA5";
-                } else if (voiceName.toLowerCase() == "juli") {
-                    voiceID = "juli";
-                } else if (voiceName.toLowerCase() == "mayor") {
-                    voiceID = "19AzCRtlVnWKYSa1c4n2";
-                } else {
-                    // Default Voice "Will"
-                    voiceID = "bIHbv24MWmeRgasZH58o";
-                }
+            function extractVoiceName(bitsMessage) {
+                // Use a regular expression to find the text within the first set of square brackets
+                var match = bitsMessage.match(/\[([^\]]+)\]/);
                 
-                // Check voice id
-                if (voiceID) {
-                    // Remove any cheers and voice name (including brackets) from the bits message
-                    var voiceText = removeCheerWords(bitsMessage).replace('[' + voiceName + ']','');
-
-                    // Convert the above text to speech using the indicated voice
-                    textToSpeech(voiceID, voiceText.trim());
+                // Check if a match was found
+                if (match) {
+                    // Assign the matched text to the voiceName variable
+                    var voiceName = match[1];
+                    return voiceName;
                 } else {
-                    // Handle the case where name matches no id
-                    console.error("No ID found for voice name.");
+                    // Handle the case where no brackets were found
+                    console.log("No text found within square brackets. Will use default voice.");
+                    return "default";
                 }
+            }
+
+            const cheerWords = ["cheer", "BibleThump", "cheerwhal", "Corgo", "uni", "ShowLove", "Party", "SeemsGood", "Pride", "Kappa", 
+                "FrankerZ", "HeyGuys", "DansGame", "EleGiggle", "TriHard", "Kreygasm", "4Head", "SwiftRage", "NotLikeThis", "FailFish", 
+                "VoHiYo", "PJSalt", "MrDestructoid", "bday", "RIPCheer", "Shamrock", "BitBoss", "Streamlabs", "Muxy", "HolidayCheer", 
+                "Goal", "Charity"
+            ];
+
+            function removeCheerWords(bitsMessage) {
+                // Create a regular expression pattern to match any of the words followed by one or more digits
+                const regexPattern = cheerWords.map(word => `${word}\\d+`).join('|');
+                const regex = new RegExp(regexPattern, 'gi');
                 
+                // Replace the matched patterns with an empty string
+                const result = bitsMessage.replace(regex, '');
+                return result;
             }
-        }
-
-        function extractVoiceName(bitsMessage) {
-            // Use a regular expression to find the text within the first set of square brackets
-            var match = bitsMessage.match(/\[([^\]]+)\]/);
             
-            // Check if a match was found
-            if (match) {
-                // Assign the matched text to the voiceName variable
-                var voiceName = match[1];
-                return voiceName;
-            } else {
-                // Handle the case where no brackets were found
-                console.log("No text found within square brackets. Will use default voice.");
-                return "default";
-            }
-        }
+            const speechText = document.querySelector('#speechText');
+            const speechTextContainer = document.querySelector('#alertBox');
 
-        const cheerWords = ["cheer", "BibleThump", "cheerwhal", "Corgo", "uni", "ShowLove", "Party", "SeemsGood", "Pride", "Kappa", 
-            "FrankerZ", "HeyGuys", "DansGame", "EleGiggle", "TriHard", "Kreygasm", "4Head", "SwiftRage", "NotLikeThis", "FailFish", 
-            "VoHiYo", "PJSalt", "MrDestructoid", "bday", "RIPCheer", "Shamrock", "BitBoss", "Streamlabs", "Muxy", "HolidayCheer", 
-            "Goal", "Charity"
-        ];
+            function textToSpeech(voiceID, voiceSettings, voiceText, modelID) {
 
-        function removeCheerWords(bitsMessage) {
-            // Create a regular expression pattern to match any of the words followed by one or more digits
-            const regexPattern = cheerWords.map(word => `${word}\\d+`).join('|');
-            const regex = new RegExp(regexPattern, 'gi');
-            
-            // Replace the matched patterns with an empty string
-            const result = bitsMessage.replace(regex, '');
-            return result;
-        }
-        
-        const speechText = document.querySelector('#speechText');
-        const speechTextContainer = document.querySelector('#alertBox');
-
-        function textToSpeech(voiceID, voiceText) {
-
-            if (voiceID == "juli") {
-                speechText.innerHTML = "Time to ban " + cheererUserName + "!";
-                processSpeechText();
-                speechTextContainer.classList.remove("normalTTSBackground");
-                speechTextContainer.classList.add("juliBanTTSBackground");
-                speechTextContainer.classList.toggle('fade');
-                var alertAudio = new Audio('../assets/audio/twitch-bits-donation-sound-effect-sfx.mp3');
-                alertAudio.addEventListener("ended", function() {
-                    var speechAudio = new Audio('../assets/audio/juli_yeah-thats-a-ban.mp3');
-                    speechAudio.addEventListener("ended", function() {
-                        speechTextContainer.classList.toggle('fade');
-                        setTimeout(function() {
-                            speechTextContainer.classList.remove("juliBanTTSBackground");
-                            speechTextContainer.classList.add("normalTTSBackground");
-                        }, 1000);
+                if (voiceID == "juli") {
+                    speechText.innerHTML = "Time to ban " + cheererUserName + "!";
+                    processSpeechText();
+                    speechTextContainer.classList.remove("normalTTSBackground");
+                    speechTextContainer.classList.add("juliBanTTSBackground");
+                    speechTextContainer.classList.toggle('fade');
+                    var alertAudio = new Audio('../assets/audio/twitch-bits-donation-sound-effect-sfx.mp3');
+                    alertAudio.addEventListener("ended", function() {
+                        var speechAudio = new Audio('../assets/audio/juli_yeah-thats-a-ban.mp3');
+                        speechAudio.addEventListener("ended", function() {
+                            speechTextContainer.classList.toggle('fade');
+                            setTimeout(function() {
+                                speechTextContainer.classList.remove("juliBanTTSBackground");
+                                speechTextContainer.classList.add("normalTTSBackground");
+                                isProcessing = false;
+                                processEventQueue(); // Process the next event in the queue
+                            }, 1000);
+                        });
+                        var speechPlayPromise = speechAudio.play();
+                        if (speechPlayPromise !== undefined) {
+                            speechPlayPromise.then(_ => {
+                                // Autoplay started!
+                            }).catch(error => {
+                                // Autoplay was prevented.
+                                console.error(error);
+                                speechTextContainer.classList.toggle('fade');
+                                setTimeout(function() {
+                                    speechTextContainer.classList.remove("juliBanTTSBackground");
+                                    speechTextContainer.classList.add("normalTTSBackground");
+                                    isProcessing = false;
+                                    processEventQueue(); // Process the next event in the queue
+                                }, 1000);
+                            });
+                        }
                     });
-                    var speechPlayPromise = speechAudio.play();
-                    if (speechPlayPromise !== undefined) {
-                        speechPlayPromise.then(_ => {
+                    var alertPlayPromise = alertAudio.play();
+                    if (alertPlayPromise !== undefined) {
+                        alertPlayPromise.then(_ => {
                             // Autoplay started!
                         }).catch(error => {
                             // Autoplay was prevented.
@@ -403,94 +523,86 @@
                             setTimeout(function() {
                                 speechTextContainer.classList.remove("juliBanTTSBackground");
                                 speechTextContainer.classList.add("normalTTSBackground");
+                                isProcessing = false;
+                                processEventQueue(); // Process the next event in the queue
                             }, 1000);
                         });
                     }
-                });
-                var alertPlayPromise = alertAudio.play();
-                if (alertPlayPromise !== undefined) {
-                    alertPlayPromise.then(_ => {
-                        // Autoplay started!
-                    }).catch(error => {
-                        // Autoplay was prevented.
-                        console.error(error);
-                        speechTextContainer.classList.toggle('fade');
-                        setTimeout(function() {
-                            speechTextContainer.classList.remove("juliBanTTSBackground");
-                            speechTextContainer.classList.add("normalTTSBackground");
-                        }, 1000);
-                    });
-                }
-            } else {
-                // Build options array needed for Elevenlabs API request
-                var elevenlabsOptions = {
-                    method: 'POST',
-                    headers: {
-                        'xi-api-key': userELToken,
-                        'Content-Type': 'application/json'
-                    },
-                    body: '{"voice_settings":{"use_speaker_boost":true,"stability":0.5,"style":0.4,"similarity_boost":0.75},"text":"' + voiceText + '","model_id":"eleven_multilingual_v2"}'
-                };
-            
-                fetch('https://api.elevenlabs.io/v1/text-to-speech/' + voiceID + '?enable_logging=false', elevenlabsOptions)
-                    .then(res => res.blob())
-                    .then(blob => {
-                        speechText.innerHTML = voiceText;
-                        processSpeechText();
-                        speechTextContainer.classList.toggle('fade');
-                        var alertAudio = new Audio('../assets/audio/twitch-bits-donation-sound-effect-sfx.mp3');
-                        alertAudio.addEventListener("ended", function() {
-                            const url = URL.createObjectURL(blob);
-                            var speechAudio = new Audio(url);
-                            speechAudio.addEventListener("ended", function() {
-                                speechTextContainer.classList.toggle('fade');
+                } else {
+                    // Build options array needed for Elevenlabs API request
+                    var elevenlabsOptions = {
+                        method: 'POST',
+                        headers: {
+                            'xi-api-key': userELToken,
+                            'Content-Type': 'application/json'
+                        },
+                        body: '{"voice_settings":' + voiceSettings + ',"text":"' + voiceText + '","model_id":"' + modelID + '"}'
+                    };
+                
+                    fetch('https://api.elevenlabs.io/v1/text-to-speech/' + voiceID + '?enable_logging=false', elevenlabsOptions)
+                        .then(res => res.blob())
+                        .then(blob => {
+                            speechText.innerHTML = voiceText.replace(skeletorLaugh,'');
+                            processSpeechText();
+                            speechTextContainer.classList.toggle('fade');
+                            var alertAudio = new Audio('../assets/audio/twitch-bits-donation-sound-effect-sfx.mp3');
+                            alertAudio.addEventListener("ended", function() {
+                                const url = URL.createObjectURL(blob);
+                                var speechAudio = new Audio(url);
+                                speechAudio.volume = voiceVolume;
+                                speechAudio.addEventListener("ended", function() {
+                                    speechTextContainer.classList.toggle('fade');
+                                    isProcessing = false;
+                                    processEventQueue(); // Process the next event in the queue
+                                });
+                                var speechPlayPromise = speechAudio.play();
+                                if (speechPlayPromise !== undefined) {
+                                    speechPlayPromise.then(_ => {
+                                        // Autoplay started!
+                                    }).catch(error => {
+                                        // Autoplay was prevented.
+                                        console.error(error);
+                                        speechTextContainer.classList.toggle('fade');
+                                        isProcessing = false;
+                                        processEventQueue(); // Process the next event in the queue
+                                    });
+                                }
                             });
-                            var speechPlayPromise = speechAudio.play();
-                            if (speechPlayPromise !== undefined) {
-                                speechPlayPromise.then(_ => {
+                            var alertPlayPromise = alertAudio.play();
+                            if (alertPlayPromise !== undefined) {
+                                alertPlayPromise.then(_ => {
                                     // Autoplay started!
                                 }).catch(error => {
                                     // Autoplay was prevented.
                                     console.error(error);
                                     speechTextContainer.classList.toggle('fade');
+                                    isProcessing = false;
+                                    processEventQueue(); // Process the next event in the queue
                                 });
                             }
-                        });
-                        var alertPlayPromise = alertAudio.play();
-                        if (alertPlayPromise !== undefined) {
-                            alertPlayPromise.then(_ => {
-                                // Autoplay started!
-                            }).catch(error => {
-                                // Autoplay was prevented.
-                                console.error(error);
-                                speechTextContainer.classList.toggle('fade');
-                            });
-                        }
-                    })
-                    .catch(err => console.error(err));
-            }
-        }
-
-        function processSpeechText() { 
-            speechText.style.fontSize = '100px'; // Default font size
-            resizeSpeechTextToFit();
-        }
-
-        function resizeSpeechTextToFit() {
-            try {
-                let fontSize = window.getComputedStyle(speechText).fontSize;
-                speechText.style.fontSize = (parseFloat(fontSize) - 1) + 'px';
-
-                if (speechText.clientHeight >= speechTextContainer.clientHeight) {
-                    resizeSpeechTextToFit();
+                        }).catch(err => console.error(err));
                 }
-            } catch (err) {
-
             }
-            
-        }
-    </script>
 
-</body>
+            function processSpeechText() { 
+                speechText.style.fontSize = '100px'; // Default font size
+                resizeSpeechTextToFit();
+            }
+
+            function resizeSpeechTextToFit() {
+                try {
+                    let fontSize = window.getComputedStyle(speechText).fontSize;
+                    speechText.style.fontSize = (parseFloat(fontSize) - 1) + 'px';
+
+                    if (speechText.clientHeight >= speechTextContainer.clientHeight) {
+                        resizeSpeechTextToFit();
+                    }
+                } catch (err) {
+
+                }
+            }
+        </script>
+
+    </body>
 
 </html>
