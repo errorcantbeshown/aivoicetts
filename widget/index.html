@@ -433,7 +433,7 @@
                     // Check voice id
                     if (voiceID) {
                         // Remove any cheers and voice name (including brackets) from the bits message
-                        var voiceText = removeCheerWords(bitsMessage).replace('[' + voiceName + ']','');
+                        var voiceText = removeCheerWords(bitsMessage).replace('[' + voiceName + ']','').replace('[random]','');
 
                         // Convert the above text to speech using the indicated voice
                         textToSpeech(voiceID, voiceSettings, voiceText.trim(), modelID);
