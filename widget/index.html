@@ -342,11 +342,11 @@
                                     console.log(eventData.message);
                                     if (parseInt(eventData.message[0].amount) >= 500) {
                                         checkForTTS(parseInt(eventData.message[0].amount), "[mayor] " + eventData.message[0].message);
-                                    } else if (parseInt(eventData.message[0].amount) >= 100) {
+                                    } else if (parseInt(eventData.message[0].amount) >= 1) {
                                         checkForTTS(parseInt(eventData.message[0].amount), "[random] " + eventData.message[0].message);
                                     }
                                 } else {
-                                    if (parseInt(eventData.message[0].amount) >= 100) {
+                                    if (parseInt(eventData.message[0].amount) >= 1) {
                                         checkForTTS(parseInt(eventData.message[0].amount), eventData.message[0].message);
                                     }
                                 }
