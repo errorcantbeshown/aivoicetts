@@ -89,6 +89,7 @@
             const skeletorLaughs = [" hehehehehehehehehehehehehehehehehehhhhhh!", " heh - - - heheheheh - hehehehehehahahahaaaa!",
                 " hehehahahahahahah!", " Nyahahahah!", " hahahahahahahahahaaaaaaaaaahhhhh"
             ];
+            var voiceNames = ["hifumi", "skeletor", "mayor", "child", "emo", "sobbing", "trailer", "whisper", "will"];
             var voices;
             var voiceVolume = 1.0;
 
@@ -342,7 +343,7 @@
                                     if (parseInt(eventData.message[0].amount) >= 500) {
                                         checkForTTS(parseInt(eventData.message[0].amount), "[mayor] " + eventData.message[0].message);
                                     } else if (parseInt(eventData.message[0].amount) >= 100) {
-                                        checkForTTS(parseInt(eventData.message[0].amount), "[hifumi] " + eventData.message[0].message);
+                                        checkForTTS(parseInt(eventData.message[0].amount), "[random] " + eventData.message[0].message);
                                     }
                                 } else {
                                     if (parseInt(eventData.message[0].amount) >= 100) {
@@ -371,6 +372,11 @@
                     var voiceSettings = "";
                     var modelID = "";
 
+                    // "Random" Check
+                    if (voiceName.toLowerCase() == "random") {
+                        voiceName = voiceNames[(Math.floor(Math.random() * voiceNames.length))]
+                    }
+
                     // TODO Change from using IF statements to database lookup
                     if (voiceName.toLowerCase() == "hifumi") {
                         voiceID = voices.hifumi.voice_id;
@@ -386,36 +392,36 @@
                         bitsMessage += skeletorLaugh;
                     } else if (voiceName.toLowerCase() == "juli") {
                         voiceID = "juli";
+                    } else if (voiceName.toLowerCase() == "child") {
+                        voiceID = voices.child.voice_id;
+                        voiceSettings = voices.child.voice_settings;
+                        modelID = voices.child.model_id;
+                        voiceVolume = 0.5;
+                    } else if (voiceName.toLowerCase() == "emo") {
+                        voiceID = voices.emo.voice_id;
+                        voiceSettings = voices.emo.voice_settings;
+                        modelID = voices.emo.model_id;
+                        voiceVolume = 0.5;
+                    } else if (voiceName.toLowerCase() == "sobbing") {
+                        voiceID = voices.sobbing.voice_id;
+                        voiceSettings = voices.sobbing.voice_settings;
+                        modelID = voices.sobbing.model_id;
+                        voiceVolume = 0.5;
+                    } else if (voiceName.toLowerCase() == "trailer") {
+                        voiceID = voices.trailer.voice_id;
+                        voiceSettings = voices.trailer.voice_settings;
+                        modelID = voices.trailer.model_id;
+                        voiceVolume = 0.25;
+                    } else if (voiceName.toLowerCase() == "whisper") {
+                        voiceID = voices.whisper.voice_id;
+                        voiceSettings = voices.whisper.voice_settings;
+                        modelID = voices.whisper.model_id;
+                        voiceVolume = 0.75;
                     } else if (bitsAmount >= 500 && voiceName.toLowerCase() == "mayor") {
                         voiceID = voices.mayor.voice_id;
                         voiceSettings = voices.mayor.voice_settings;
                         modelID = voices.mayor.model_id;
                         voiceVolume = 1.0;
-                    } else if (bitsAmount >= 500 && voiceName.toLowerCase() == "child") {
-                        voiceID = voices.child.voice_id;
-                        voiceSettings = voices.child.voice_settings;
-                        modelID = voices.child.model_id;
-                        voiceVolume = 0.5;
-                    } else if (bitsAmount >= 500 && voiceName.toLowerCase() == "emo") {
-                        voiceID = voices.emo.voice_id;
-                        voiceSettings = voices.emo.voice_settings;
-                        modelID = voices.emo.model_id;
-                        voiceVolume = 0.5;
-                    } else if (bitsAmount >= 500 && voiceName.toLowerCase() == "sobbing") {
-                        voiceID = voices.sobbing.voice_id;
-                        voiceSettings = voices.sobbing.voice_settings;
-                        modelID = voices.sobbing.model_id;
-                        voiceVolume = 0.5;
-                    } else if (bitsAmount >= 500 && voiceName.toLowerCase() == "trailer") {
-                        voiceID = voices.trailer.voice_id;
-                        voiceSettings = voices.trailer.voice_settings;
-                        modelID = voices.trailer.model_id;
-                        voiceVolume = 0.25;
-                    } else if (bitsAmount >= 500 && voiceName.toLowerCase() == "whisper") {
-                        voiceID = voices.whisper.voice_id;
-                        voiceSettings = voices.whisper.voice_settings;
-                        modelID = voices.whisper.model_id;
-                        voiceVolume = 0.75;
                     } else {
                         // Default voice "Will"
                         voiceID = voices.will.voice_id;
