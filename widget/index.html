@@ -341,13 +341,13 @@
                                     console.log("Received Test Alert.");
                                     console.log(eventData.message);
                                     if (parseInt(eventData.message[0].amount) >= 500) {
-                                        checkForTTS(parseInt(eventData.message[0].amount), "[mayor] " + eventData.message[0].message);
+                                        checkForTTS(parseInt(eventData.message[0].amount), "[mayor] " + eventData.message[0].message.replace(/"/g, ''));
                                     } else if (parseInt(eventData.message[0].amount) >= 1) {
-                                        checkForTTS(parseInt(eventData.message[0].amount), "[random] " + eventData.message[0].message);
+                                        checkForTTS(parseInt(eventData.message[0].amount), "[random] " + eventData.message[0].message.replace(/"/g, ''));
                                     }
                                 } else {
                                     if (parseInt(eventData.message[0].amount) >= 1) {
-                                        checkForTTS(parseInt(eventData.message[0].amount), eventData.message[0].message);
+                                        checkForTTS(parseInt(eventData.message[0].amount), eventData.message[0].message.replace(/"/g, ''));
                                     }
                                 }
                             }
@@ -435,8 +435,15 @@
                         // Remove any cheers and voice name (including brackets) from the bits message
                         var voiceText = removeCheerWords(bitsMessage).replace('[' + voiceName + ']','').replace('[random]','');
 
-                        // Convert the above text to speech using the indicated voice
-                        textToSpeech(voiceID, voiceSettings, voiceText.trim(), modelID);
+                        if (voiceText != null && voiceText.trim().length != 0) {
+                            // Convert the above text to speech using the indicated voice
+                            textToSpeech(voiceID, voiceSettings, voiceText.trim(), modelID);
+                        } else {
+                            // Handle the case where there is no message
+                            console.log("No message for TTS.");
+                            isProcessing = false;
+                            processEventQueue(); // Process the next event in the queue
+                        }
                     } else {
                         // Handle the case where name matches no id
                         console.error("No ID found for voice name.");
