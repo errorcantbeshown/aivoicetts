@@ -1,4 +1,9 @@
 {
+  "cowboy": {
+    "voice_id": "KTPVrSVAEUSJRClDzBw7",
+    "voice_settings": "{\"use_speaker_boost\":true,\"stability\":0.3,\"style\":0.48,\"similarity_boost\":0.95}",
+    "model_id":"eleven_multilingual_v2"
+  },
   "hifumi": {
     "voice_id": "11nykyL7h0pYd7hh1lA5",
     "voice_settings": "{\"use_speaker_boost\":true,\"stability\":0.5,\"style\":0.4,\"similarity_boost\":0.75}",
