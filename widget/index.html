@@ -21,8 +21,9 @@
 
         <!-- custom css -->
         <style>
-            body {
+            html, body {
                 background-color: transparent;
+                overflow-x: hidden;
             }
             #alertBox {
                 opacity: 1;
@@ -84,7 +85,7 @@
             var userName = null;
             var userSLToken = null;
             var userELToken = null;
-            var cheererUserName = "Anonymous";
+            var twitchUserName = "Anonymous";
             var skeletorLaugh = " nyah!";
             const skeletorLaughs = [" hehehehehehehehehehehehehehehehehehhhhhh!", " heh - - - heheheheh - hehehehehehahahahaaaa!",
                 " hehehahahahahahah!", " Nyahahahah!", " hahahahahahahahahaaaaaaaaaahhhhh"
@@ -320,12 +321,13 @@
                 return new Promise((resolve, reject) => {
                     try {
                         if (eventData.type == "bits") {
+                            console.log("Twitch Cheer Event!");
                             // Save Username of Cheerer
                             try { 
-                                cheererUserName = eventData.message[0].name; 
+                                twitchUserName = eventData.message[0].name; 
                             } catch (err) {
                                 console.log("Unable to read name from Event.", err);
-                                cheererUserName = "Anonymous"; // Reset back to "Anonymous", just in case
+                                twitchUserName = "Anonymous"; // Reset back to "Anonymous", just in case
                             }
 
                             // Check if Preview Alert
@@ -351,8 +353,38 @@
                                     }
                                 }
                             }
+                            resolve(`Bits Event processed for ${twitchUserName}`);
+                        } else if (eventData.type == "subscription") {
+                            console.log("Twitch Sub Event!");
+                            // Save Username of Subscriber
+                            try { 
+                                twitchUserName = eventData.message[0].name; 
+                            } catch (err) {
+                                console.log("Unable to read name from Event.", err);
+                                twitchUserName = "Anonymous"; // Reset back to "Anonymous", just in case
+                            }
+                            try {
+                                if (eventData.message[0].message) {
+                                    setTimeout(function() {
+                                        resolveSubAlertTTS(eventData.message[0].message);
+                                    }, 3000);
+                                } else {
+                                    console.log("No Sub Message.");
+                                    isProcessing = false;
+                                    processEventQueue(); // Process the next event in the queue
+                                }
+                            } catch (err) {
+                                console.log("Unable to read message from Event.", err);
+                                isProcessing = false;
+                                processEventQueue(); // Process the next event in the queue
+                            }
+                            resolve(`Sub Event processed for ${twitchUserName}`);
+                        } else {
+                            // Failsafe?
+                            resolve("Do Nothing.");
+                            isProcessing = false;
+                            processEventQueue(); // Process the next event in the queue
                         }
-                        resolve(`Bits event processed for ${cheererUserName}`);
                     } catch (error) {
                         reject(error);
                         isProcessing = false;
@@ -458,9 +490,9 @@
                 }
             }
 
-            function extractVoiceName(bitsMessage) {
+            function extractVoiceName(eventMessage) {
                 // Use a regular expression to find the text within the first set of square brackets
-                var match = bitsMessage.match(/\[([^\]]+)\]/);
+                var match = eventMessage.match(/\[([^\]]+)\]/);
                 
                 // Check if a match was found
                 if (match) {
@@ -469,7 +501,7 @@
                     return voiceName;
                 } else {
                     // Handle the case where no brackets were found
-                    console.log("No text found within square brackets. Will use default voice.");
+                    console.log("No text found within square brackets.");
                     return "default";
                 }
             }
@@ -480,13 +512,13 @@
                 "Goal", "Charity"
             ];
 
-            function removeCheerWords(bitsMessage) {
+            function removeCheerWords(eventMessage) {
                 // Create a regular expression pattern to match any of the words followed by one or more digits
                 const regexPattern = cheerWords.map(word => `${word}\\d+`).join('|');
                 const regex = new RegExp(regexPattern, 'gi');
                 
                 // Replace the matched patterns with an empty string
-                const result = bitsMessage.replace(regex, '');
+                const result = eventMessage.replace(regex, '');
                 return result;
             }
             
@@ -496,7 +528,7 @@
             function textToSpeech(voiceID, voiceSettings, voiceText, modelID) {
 
                 if (voiceID == "juli") {
-                    speechText.innerHTML = "Time to ban " + cheererUserName + "!";
+                    speechText.innerHTML = "Time to ban " + twitchUserName + "!";
                     processSpeechText();
                     speechTextContainer.classList.remove("normalTTSBackground");
                     speechTextContainer.classList.add("juliBanTTSBackground");
@@ -617,6 +649,168 @@
                     }
                 } catch (err) {
 
+                }
+            }
+
+            function resolveSubAlertTTS(subMessage) {
+                // Use function to retrieve a voice name from the bits message
+                var voiceName = extractVoiceName(subMessage);
+                
+                // "Random" Check
+                if (!voiceName || voiceName.toLowerCase() == "default" || voiceName.toLowerCase() == "random") {
+                    voiceName = voiceNames[(Math.floor(Math.random() * voiceNames.length))];
+                }
+
+                // Retrieve the corresponding voice info based off of the voice name
+                var voiceID = null;
+                var voiceSettings = "";
+                var modelID = "";
+
+                // TODO Change from using IF statements to database lookup
+                if (voiceName.toLowerCase() == "hifumi") {
+                    voiceID = voices.hifumi.voice_id;
+                    voiceSettings = voices.hifumi.voice_settings;
+                    modelID = voices.hifumi.model_id;
+                    voiceVolume = 1.0;
+                } else if (voiceName.toLowerCase() == "skeletor") {
+                    voiceID = voices.skeletor.voice_id;
+                    voiceSettings = voices.skeletor.voice_settings;
+                    modelID = voices.skeletor.model_id;
+                    voiceVolume = 0.25;
+                    skeletorLaugh = skeletorLaughs[(Math.floor(Math.random() * skeletorLaughs.length))];
+                    subMessage += skeletorLaugh;
+                } else if (voiceName.toLowerCase() == "juli") {
+                    voiceID = "juli";
+                } else if (voiceName.toLowerCase() == "child") {
+                    voiceID = voices.child.voice_id;
+                    voiceSettings = voices.child.voice_settings;
+                    modelID = voices.child.model_id;
+                    voiceVolume = 0.5;
+                } else if (voiceName.toLowerCase() == "emo") {
+                    voiceID = voices.emo.voice_id;
+                    voiceSettings = voices.emo.voice_settings;
+                    modelID = voices.emo.model_id;
+                    voiceVolume = 0.5;
+                } else if (voiceName.toLowerCase() == "sobbing") {
+                    voiceID = voices.sobbing.voice_id;
+                    voiceSettings = voices.sobbing.voice_settings;
+                    modelID = voices.sobbing.model_id;
+                    voiceVolume = 0.5;
+                } else if (voiceName.toLowerCase() == "trailer") {
+                    voiceID = voices.trailer.voice_id;
+                    voiceSettings = voices.trailer.voice_settings;
+                    modelID = voices.trailer.model_id;
+                    voiceVolume = 0.25;
+                } else if (voiceName.toLowerCase() == "whisper") {
+                    voiceID = voices.whisper.voice_id;
+                    voiceSettings = voices.whisper.voice_settings;
+                    modelID = voices.whisper.model_id;
+                    voiceVolume = 0.75;
+                } else if (voiceName.toLowerCase() == "cowboy") {
+                    voiceID = voices.cowboy.voice_id;
+                    voiceSettings = voices.cowboy.voice_settings;
+                    modelID = voices.cowboy.model_id;
+                    voiceVolume = 0.5;
+                } else if (voiceName.toLowerCase() == "mayor") {
+                    voiceID = voices.mayor.voice_id;
+                    voiceSettings = voices.mayor.voice_settings;
+                    modelID = voices.mayor.model_id;
+                    voiceVolume = 1.0;
+                } else {
+                    // Default voice "Will"
+                    voiceID = voices.will.voice_id;
+                    voiceSettings = voices.will.voice_settings;
+                    modelID = voices.will.model_id;
+                    voiceVolume = 0.5;
+                }
+                
+                try {
+                    // Remove any cheers and voice name (including brackets) from the sub message
+                    var voiceText = removeCheerWords(subMessage).replace('[' + voiceName + ']','').replace('[random]','');
+
+                    if (voiceText != null && voiceText.trim().length != 0) {
+                        // Convert the above text to speech using the indicated voice
+                        if (voiceID == "juli") {
+                            speechText.innerHTML = "Time to ban " + twitchUserName + "!";
+                            processSpeechText();
+                            speechTextContainer.classList.remove("normalTTSBackground");
+                            speechTextContainer.classList.add("juliBanTTSBackground");
+                            speechTextContainer.classList.toggle('fade');
+                            var speechAudio = new Audio('../assets/audio/juli_yeah-thats-a-ban.mp3');
+                            speechAudio.addEventListener("ended", function() {
+                                speechTextContainer.classList.toggle('fade');
+                                setTimeout(function() {
+                                    speechTextContainer.classList.remove("juliBanTTSBackground");
+                                    speechTextContainer.classList.add("normalTTSBackground");
+                                    isProcessing = false;
+                                    processEventQueue(); // Process the next event in the queue
+                                }, 1000);
+                            });
+                            var speechPlayPromise = speechAudio.play();
+                            if (speechPlayPromise !== undefined) {
+                                speechPlayPromise.then(_ => {
+                                    // Autoplay started!
+                                }).catch(error => {
+                                    // Autoplay was prevented.
+                                    console.error(error);
+                                    speechTextContainer.classList.toggle('fade');
+                                    setTimeout(function() {
+                                        speechTextContainer.classList.remove("juliBanTTSBackground");
+                                        speechTextContainer.classList.add("normalTTSBackground");
+                                        isProcessing = false;
+                                        processEventQueue(); // Process the next event in the queue
+                                    }, 1000);
+                                });
+                            }
+                        } else {
+                            // Build options array needed for Elevenlabs API request
+                            var elevenlabsOptions = {
+                                method: 'POST',
+                                headers: {
+                                    'xi-api-key': userELToken,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: '{"voice_settings":' + voiceSettings + ',"text":"' + voiceText.trim() + '","model_id":"' + modelID + '"}'
+                            };
+                        
+                            fetch('https://api.elevenlabs.io/v1/text-to-speech/' + voiceID + '?enable_logging=false', elevenlabsOptions)
+                                .then(res => res.blob())
+                                .then(blob => {
+                                    speechText.innerHTML = voiceText.replace(skeletorLaugh,'');
+                                    processSpeechText();
+                                    speechTextContainer.classList.toggle('fade');
+                                    const url = URL.createObjectURL(blob);
+                                    var speechAudio = new Audio(url);
+                                    speechAudio.volume = voiceVolume;
+                                    speechAudio.addEventListener("ended", function() {
+                                        speechTextContainer.classList.toggle('fade');
+                                        isProcessing = false;
+                                        processEventQueue(); // Process the next event in the queue
+                                    });
+                                    var speechPlayPromise = speechAudio.play();
+                                    if (speechPlayPromise !== undefined) {
+                                        speechPlayPromise.then(_ => {
+                                            // Autoplay started!
+                                        }).catch(error => {
+                                            // Autoplay was prevented.
+                                            console.error(error);
+                                            speechTextContainer.classList.toggle('fade');
+                                            isProcessing = false;
+                                            processEventQueue(); // Process the next event in the queue
+                                        });
+                                    }
+                                }).catch(err => console.error(err));
+                        }
+                    } else {
+                        // Handle the case where there is no message
+                        console.log("No message for TTS.");
+                        isProcessing = false;
+                        processEventQueue(); // Process the next event in the queue
+                    }
+                } catch (err) {
+                    console.log("Unable to process TTS.", err);
+                    isProcessing = false;
+                    processEventQueue(); // Process the next event in the queue
                 }
             }
         </script>
