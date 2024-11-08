@@ -148,7 +148,7 @@
                 window.addEventListener('resize', processSpeechText);
 
                 const urlParams = new URLSearchParams(window.location.search);
-                const userID = urlParams.get('u') || null;
+                userID = urlParams.get('u') || null;
 
                 if (!userID) {
                     console.error('Invalid or missing User ID.');
