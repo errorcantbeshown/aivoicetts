@@ -56,7 +56,7 @@
         <div id="page-content">
             <div class="normalTTSBackground fade" id="alertBox" style="width: 100%;height: 100vw;">
                 <div class="row d-flex justify-content-center align-items-center bd-highlight h-100">
-                    <font class="text-center text-white" id="speechText">[Speech Text Goes Here]</font>
+                    <font class="text-center text-white" id="speechText" style="text-shadow: rgb(0, 0, 0) 3px 3px 0px, rgb(0, 0, 0) -1px -1px 0px, rgb(0, 0, 0) 1px -1px 0px, rgb(0, 0, 0) -1px 1px 0px, rgb(0, 0, 0) 1px 1px 0px;">[Speech Text Goes Here]</font>
                 </div>
             </div>
         </div>
@@ -74,9 +74,9 @@
         <!-- Custom JS -->
         <script src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js' type='text/javascript'></script>
         <script type="text/javascript">
-
-           // Initialize Global Variables
-           var appID = null;
+            
+            // Initialize Global Variables
+            var appID = null;
             var developerKey = null;
             var userInfoSheetID = null;
             var adminAccessToken = null;
@@ -85,13 +85,28 @@
             var userName = null;
             var userSLToken = null;
             var userELToken = null;
+            var userOAToken = null;
+            var userBotBackgroundImageURL = "../assets/images/bot-butler_placeholder.png";
+            var userBotInstructions = "";
+            var cheerWords;
             var twitchUserName = "Anonymous";
-            var skeletorLaugh = " nyah!";
-            const skeletorLaughs = [" hehehehehehehehehehehehehehehehehehhhhhh!", " heh - - - heheheheh - hehehehehehahahahaaaa!",
-                " hehehahahahahahah!", " Nyahahahah!", " hahahahahahahahahaaaaaaaaaahhhhh"
+            
+            const alertAudioSource = "../assets/audio/twitch-bits-donation-sound-effect-sfx.mp3";
+
+            var isBot = false;
+            const fillerAudioList = [
+                {entry: "../assets/audio/filler/knocking-and-door-opening.mp3", percentage: 50},
+                {entry: "../assets/audio/filler/three-gentle-knocks.mp3", percentage: 30},
+                {entry: "../assets/audio/filler/throat-clear-with-spoken-knock.mp3", percentage: 20}
             ];
-            var voiceNames = ["hifumi", "skeletor", "mayor", "child", "emo", "sobbing", "trailer", "whisper", "will"];
+            const fillerAudios = createPercentageBasedArray(fillerAudioList);
+            var endingDialogue = "";
+            
             var voices;
+            var allVoiceNames;
+            var unrestrictedVoiceNames;
+            var standardVoiceNames;
+            const premiumVoiceBitsAmount = 500;
             var voiceVolume = 1.0;
 
             // Prep Event Queue
@@ -118,93 +133,86 @@
                         ]).then(resolve).catch(reject);
                     } catch (error) {
                         reject(error);
-                        isProcessing = false;
-                        processEventQueue(); // Process the next event in the queue
+                        endProcessing();
                     }
                 });
             }
+
+            function endProcessing() {
+                isProcessing = false;
+                processEventQueue(); // Process the next event in the queue
+            }
             
             $(document).ready(function() {
-                // TODO For Testing
                 processSpeechText();
                 window.addEventListener('resize', processSpeechText);
 
-                const queryString = window.location.search;
-                const urlParams = new URLSearchParams(queryString);
-                userID = urlParams.has('u') ? urlParams.get('u') : null;
+                const urlParams = new URLSearchParams(window.location.search);
+                const userID = urlParams.get('u') || null;
 
-                // Check userID
-                if (userID) {
-                    // Loading bar animation stuff
-                    window.onpageshow = function(){
-                        $("#page-content").show();
-                        $("#page-loading").removeClass("d-flex").addClass("d-none");
-                    };
-                    window.onbeforeunload = function(){
-                        $("#page-content").fadeOut("fast", function() {
-                            // Animation complete.
-                        });
-                        $("#page-loading").removeClass("d-none").addClass("d-flex");
-                    };
-
-                    // Reads the voices.json file
-                    try {
-                        $.getJSON('../voices.json', function(data) {
-                            voices = data;
-                        });
-                    } catch (err) { console.error('Unable load voices.\n' + err); }
-
-                    // Reads the settings.json file for Google Credential Data and process Google API functions
-                    try {
-                        $.getJSON('../settings.json', function(data) {
-                            // JSON result in 'data' variable
-
-                            // Set values for global js variables
-                            appID = data.googleCloudAppCredentials.appID;
-                            developerKey = data.googleCloudAppCredentials.apiKey;
-                            userInfoSheetID = data.googleDriveDataLocations.userInfoSheetID;
-
-                            let adminAccessTokenExpiration = null;
-                            try { 
-                                // Check Access Token Expiration
-                                adminAccessTokenExpiration = parseInt(sessionStorage.getItem("adminAccessTokenExpiration"));
-                                if ((Date.now()/1000) > adminAccessTokenExpiration - 300) {
-                                    console.log('Google Access Token in Session is expired.');
-
-                                    // If the Access Token is expired, remove the expiration (and try to remove the access token) from the session
-                                    sessionStorage.removeItem("adminAccessTokenExpiration");
-                                    try { sessionStorage.removeItem("adminAccessToken"); }
-                                    catch (err) { }
-                                } else { adminAccessToken = sessionStorage.getItem("adminAccessToken"); }
-                            } catch (err) { console.log('Unable to retrieve Google Access Token from Session.\n' + err); }
-                            if (!adminAccessToken) {
-                                // Get new Access Token from Refresh Token
-                                console.log('Refreshing Access Token...');
-                                refreshAccessToken(data.googleCloudAppCredentials.client_id, data.googleCloudAppCredentials.client_secret, data.googleCloudAppCredentials.refresh_token).then(function(data) {
-                                    console.log('New Access Token Recieved!');
-
-                                    // Sets new Access Token to global js variable, then saves the token and its expiration to the session
-                                    adminAccessToken = data.access_token;
-                                    sessionStorage.setItem("adminAccessToken", adminAccessToken);
-                                    sessionStorage.setItem("adminAccessTokenExpiration", (Date.now()/1000) + data.expires_in);
-                                    
-                                    // Load Sheet Reading Client to Search Database
-                                    loadSheetReadingClient();
-                                }).catch(function(err) {
-                                    console.error('Unable to get new Access Token from Refresh Token.\n' + err);
-                                });
-                            } else {
-                                // Load Sheet Reading Client to Search Database
-                                loadSheetReadingClient();
-                            }
-                        });
-                    } catch (err) { 
-                        console.error('Unable fully process App Settings.\n' + err);
-                        alert('App Settings Error!');
-                    }
-                } else {
+                if (!userID) {
                     console.error('Invalid or missing User ID.');
-                    //alert('Error 400.');
+                    alert('Error 400.');
+                    return;
+                }
+
+                // Show/hide loading animation on page load/unload
+                window.onpageshow = () => toggleLoadingDisplay(false);
+                window.onbeforeunload = () => toggleLoadingDisplay(true);
+
+                loadJSONFiles([
+                    '../voices.json',
+                    '../settings.json'
+                ]).then(([voicesData, settingsData]) => {
+                    setupVoiceData(voicesData);
+                    processAppSettings(settingsData);
+                }).catch(err => {
+                    console.error('Error loading JSON files:', err);
+                    alert('App Settings Error!');
+                });
+
+                function toggleLoadingDisplay(isLoading) {
+                    $("#page-content").toggle(!isLoading);
+                    $("#page-loading").toggleClass("d-flex", isLoading).toggleClass("d-none", !isLoading);
+                }
+
+                async function loadJSONFiles(paths) {
+                    return await Promise.all(paths.map(path => $.getJSON(path)));
+                }
+
+                function setupVoiceData(data) {
+                    voices = data;
+                    allVoiceNames = Object.keys(voices);
+                    unrestrictedVoiceNames = allVoiceNames.filter(name => name !== "butler");
+                    standardVoiceNames = unrestrictedVoiceNames.filter(name => name !== "mayor");
+                }
+
+                function processAppSettings(data) {
+                    appID = data.googleCloudAppCredentials.appID;
+                    developerKey = data.googleCloudAppCredentials.apiKey;
+                    userInfoSheetID = data.googleDriveDataLocations.userInfoSheetID;
+                    cheerWords = data.appValues.cheerWords;
+
+                    manageAccessToken(data.googleCloudAppCredentials.client_id, data.googleCloudAppCredentials.client_secret, data.googleCloudAppCredentials.refresh_token).then(() => {
+                        loadSheetReadingClient();
+                    }).catch(err => {
+                        console.error('Unable to retrieve or refresh Access Token.', err);
+                    });
+                }
+
+                async function manageAccessToken(client_id, client_secret, refresh_token) {
+                    let expiration = parseInt(sessionStorage.getItem("adminAccessTokenExpiration"));
+                    const isTokenExpired = (Date.now() / 1000) > (expiration - 300);
+
+                    if (isTokenExpired) {
+                        console.log('Refreshing Access Token...');
+                        const newTokenData = await refreshAccessToken(client_id, client_secret, refresh_token);
+                        adminAccessToken = newTokenData.access_token;
+                        sessionStorage.setItem("adminAccessToken", adminAccessToken);
+                        sessionStorage.setItem("adminAccessTokenExpiration", (Date.now() / 1000) + newTokenData.expires_in);
+                    } else {
+                        adminAccessToken = sessionStorage.getItem("adminAccessToken");
+                    }
                 }
             });
 
@@ -260,10 +268,16 @@
                         var userInfoIndex = findIndex(values, userID);
                         if (userInfoIndex[0] != -1 && userInfoIndex[1] == 0) {
                             console.log('User Info found!');
-                            userInfoValues = [ values[userInfoIndex[0]][0], values[userInfoIndex[0]][1], values[userInfoIndex[0]][2], values[userInfoIndex[0]][3] ];
+                            userInfoValues = [ values[userInfoIndex[0]][0], values[userInfoIndex[0]][1], values[userInfoIndex[0]][2], values[userInfoIndex[0]][3], values[userInfoIndex[0]][4], values[userInfoIndex[0]][5], values[userInfoIndex[0]][6] ];
                             userName = userInfoValues[1];
                             userSLToken = userInfoValues[2];
                             userELToken = userInfoValues[3];
+                            userOAToken = userInfoValues[4];
+                            userBotInstructions = userInfoValues[6];
+
+                            // Bot Background Image
+                            if (userInfoValues[5]) { userBotBackgroundImageURL = userInfoValues[5]; }
+                            addBotBackgroundCSS('butler', userBotBackgroundImageURL);
 
                             // Connect to socket
                             const streamlabs = io(`https://sockets.streamlabs.com?token=${userSLToken}`, {transports: ['websocket']});
@@ -320,264 +334,244 @@
             function handleStreamLabsTwitchEvent(eventData) {
                 return new Promise((resolve, reject) => {
                     try {
+                        //console.log(JSON.stringify(eventData));
                         if (eventData.type == "bits") {
-                            console.log("Twitch Cheer Event!");
-                            // Save Username of Cheerer
-                            try { 
-                                twitchUserName = eventData.message[0].name; 
-                            } catch (err) {
-                                console.log("Unable to read name from Event.", err);
-                                twitchUserName = "Anonymous"; // Reset back to "Anonymous", just in case
-                            }
+                            console.log("Twitch Bits/Cheer Event!");
+                            isBot = false;
 
-                            // Check if Preview Alert
-                            var isPreview = false;
-                            try { if (eventData.message[0].isPreview == true) { isPreview = true; } } catch (err) { }
+                            // Save Username of Cheerer
+                            twitchUserName = eventData.message[0]?.name || "Anonymous";
+
+                            // Check if Preview or Test Alert
+                            const isPreview = eventData.message[0]?.isPreview || false;
+                            const isTest = eventData.message[0]?.isTest || false;
 
                             if (!isPreview) {
-                                // Check if Test Alert
-                                var isTest = false;
-                                try { if (eventData.message[0].isTest == true) { isTest = true; } } catch (err) { }
-                                
+                                const bitsAmount = parseInt(eventData.message[0]?.amount) || 0;
                                 if (isTest) {
                                     console.log("Received Test Alert.");
                                     console.log(eventData.message);
-                                    if (parseInt(eventData.message[0].amount) >= 500) {
-                                        checkForTTS(parseInt(eventData.message[0].amount), "[mayor] " + eventData.message[0].message.replace(/"/g, ''));
+                                    if (bitsAmount >= premiumVoiceBitsAmount) {
+                                        resolveCheerAlertTTS(bitsAmount, "[mayor] " + eventData.message[0].message.replace(/"/g, ''));
                                     } else if (parseInt(eventData.message[0].amount) >= 1) {
-                                        checkForTTS(parseInt(eventData.message[0].amount), "[random] " + eventData.message[0].message.replace(/"/g, ''));
+                                        resolveCheerAlertTTS(bitsAmount, "[hifumi] " + eventData.message[0].message.replace(/"/g, ''));
                                     }
                                 } else {
-                                    if (parseInt(eventData.message[0].amount) >= 1) {
-                                        checkForTTS(parseInt(eventData.message[0].amount), eventData.message[0].message.replace(/"/g, ''));
+                                    if (bitsAmount >= 1) {
+                                        resolveCheerAlertTTS(bitsAmount, eventData.message[0].message.replace(/"/g, ''));
                                     }
                                 }
                             }
                             resolve(`Bits Event processed for ${twitchUserName}`);
-                        } else if (eventData.type == "subscription") {
+                        } else if (eventData.type == "subscription" || eventData.type == "resub") {
                             console.log("Twitch Sub Event!");
                             // Save Username of Subscriber
-                            try { 
-                                twitchUserName = eventData.message[0].name; 
-                            } catch (err) {
-                                console.log("Unable to read name from Event.", err);
-                                twitchUserName = "Anonymous"; // Reset back to "Anonymous", just in case
-                            }
+                            twitchUserName = eventData.message[0]?.name || "Anonymous";
                             try {
                                 if (eventData.message[0].message) {
+                                    isBot = false;
                                     setTimeout(function() {
                                         resolveSubAlertTTS(eventData.message[0].message);
                                     }, 3000);
                                 } else {
-                                    console.log("No Sub Message.");
-                                    isProcessing = false;
-                                    processEventQueue(); // Process the next event in the queue
+                                    if (eventData.message[0].subscriber_name) {
+                                        console.log("Triggered from Mass Gifting. Ignoring...");
+                                        endProcessing();
+                                    } else {
+                                        if (eventData.message[0].gifter) {
+                                            console.log("Single Gifted Sub! Activating Bot...");
+                                            isBot = true;
+                                            setTimeout(function() { prepForBot() }, 3000);
+
+                                            sendMessageToBot("\"" + eventData.message[0].gifter + "\" just gifted a Twitch sub to \"" + twitchUserName + "\"");
+                                        } else {
+                                            console.log("No Sub Message. Activating Bot...");
+                                            isBot = true;
+                                            setTimeout(function() { prepForBot() }, 3000);
+
+                                            let months = parseInt(eventData.message[0].months);
+                                            sendMessageToBot("\"" + twitchUserName + "\" just " + (months > 0 ? "resubscribed on Twitch" : "subscribed on Twitch for the very first time"));
+                                        }
+                                    }
                                 }
                             } catch (err) {
                                 console.log("Unable to read message from Event.", err);
-                                isProcessing = false;
-                                processEventQueue(); // Process the next event in the queue
+                                endProcessing();
                             }
                             resolve(`Sub Event processed for ${twitchUserName}`);
+                        } else if (eventData.type == "subMysteryGift") {
+                            console.log("Twitch Mass Gifted Sub Event! Activating Bot...");
+                            try {
+                                isBot = true;
+                                setTimeout(function() { prepForBot() }, 3000);
+
+                                let amount = parseInt(eventData.message[0].amount);
+                                sendMessageToBot("\"" + eventData.message[0].gifter + "\" just gifted " + eventData.message[0].amount + " Twitch sub" + (amount == 1 ? "" : "s") + " to the community");
+                            } catch (err) {
+                                console.log("Unable to activate.", err);
+                                endProcessing();
+                            }
+                            resolve(`Sub Event processed`);
                         } else {
                             // Failsafe?
                             resolve("Do Nothing.");
-                            isProcessing = false;
-                            processEventQueue(); // Process the next event in the queue
+                            endProcessing();
                         }
                     } catch (error) {
                         reject(error);
-                        isProcessing = false;
-                        processEventQueue(); // Process the next event in the queue
+                        endProcessing();
                     }
                 });
             }
 
-            function checkForTTS(bitsAmount, bitsMessage) {
-                // Use function to retrieve a voice name from the bits message
+            function resolveCheerAlertTTS(bitsAmount, bitsMessage) {
+                // Retrieve Voice Name from the Bits Message
                 var voiceName = extractVoiceName(bitsMessage);
                 
-                // Check voice name
-                if (voiceName) {
-                    // Retrieve the corresponding voice info based off of the voice name
-                    var voiceID = null;
-                    var voiceSettings = "";
-                    var modelID = "";
-
-                    // "Random" Check
-                    if (voiceName.toLowerCase() == "random") {
-                        voiceName = voiceNames[(Math.floor(Math.random() * voiceNames.length))]
-                    }
-
-                    // TODO Change from using IF statements to database lookup
-                    if (voiceName.toLowerCase() == "hifumi") {
-                        voiceID = voices.hifumi.voice_id;
-                        voiceSettings = voices.hifumi.voice_settings;
-                        modelID = voices.hifumi.model_id;
-                        voiceVolume = 1.0;
-                    } else if (voiceName.toLowerCase() == "skeletor") {
-                        voiceID = voices.skeletor.voice_id;
-                        voiceSettings = voices.skeletor.voice_settings;
-                        modelID = voices.skeletor.model_id;
-                        voiceVolume = 0.25;
-                        skeletorLaugh = skeletorLaughs[(Math.floor(Math.random() * skeletorLaughs.length))]
-                        bitsMessage += skeletorLaugh;
-                    } else if (voiceName.toLowerCase() == "juli") {
-                        voiceID = "juli";
-                    } else if (voiceName.toLowerCase() == "child") {
-                        voiceID = voices.child.voice_id;
-                        voiceSettings = voices.child.voice_settings;
-                        modelID = voices.child.model_id;
-                        voiceVolume = 0.5;
-                    } else if (voiceName.toLowerCase() == "emo") {
-                        voiceID = voices.emo.voice_id;
-                        voiceSettings = voices.emo.voice_settings;
-                        modelID = voices.emo.model_id;
-                        voiceVolume = 0.5;
-                    } else if (voiceName.toLowerCase() == "sobbing") {
-                        voiceID = voices.sobbing.voice_id;
-                        voiceSettings = voices.sobbing.voice_settings;
-                        modelID = voices.sobbing.model_id;
-                        voiceVolume = 0.5;
-                    } else if (voiceName.toLowerCase() == "trailer") {
-                        voiceID = voices.trailer.voice_id;
-                        voiceSettings = voices.trailer.voice_settings;
-                        modelID = voices.trailer.model_id;
-                        voiceVolume = 0.25;
-                    } else if (voiceName.toLowerCase() == "whisper") {
-                        voiceID = voices.whisper.voice_id;
-                        voiceSettings = voices.whisper.voice_settings;
-                        modelID = voices.whisper.model_id;
-                        voiceVolume = 0.75;
-                    } else if (voiceName.toLowerCase() == "hatch") {
-                        voiceID = voices.hatch.voice_id;
-                        voiceSettings = voices.hatch.voice_settings;
-                        modelID = voices.hatch.model_id;
-                        voiceVolume = 0.75;
-                    } else if (bitsAmount >= 500 && voiceName.toLowerCase() == "mayor") {
-                        voiceID = voices.mayor.voice_id;
-                        voiceSettings = voices.mayor.voice_settings;
-                        modelID = voices.mayor.model_id;
-                        voiceVolume = 1.0;
-                    } else {
-                        // Default voice "Will"
-                        voiceID = voices.will.voice_id;
-                        voiceSettings = voices.will.voice_settings;
-                        modelID = voices.will.model_id;
-                        voiceVolume = 0.5;
-                    }
+                // Set the available Voice Names based on Bits Amount
+                var availableVoiceNames = (bitsAmount >= premiumVoiceBitsAmount ? unrestrictedVoiceNames : standardVoiceNames);
                     
-                    // Check voice id
-                    if (voiceID) {
-                        // Remove any cheers and voice name (including brackets) from the bits message
-                        var voiceText = removeCheerWords(bitsMessage).replace('[' + voiceName + ']','').replace('[random]','');
+                // Initialize Necessary Variables for Voice
+                var voiceID = null;
+                var voiceSettings = "";
+                var modelID = "";
 
-                        if (voiceText != null && voiceText.trim().length != 0) {
-                            // Convert the above text to speech using the indicated voice
-                            textToSpeech(voiceID, voiceSettings, voiceText.trim(), modelID);
-                        } else {
-                            // Handle the case where there is no message
-                            console.log("No message for TTS.");
-                            isProcessing = false;
-                            processEventQueue(); // Process the next event in the queue
-                        }
-                    } else {
-                        // Handle the case where name matches no id
-                        console.error("No ID found for voice name.");
-                        isProcessing = false;
-                        processEventQueue(); // Process the next event in the queue
+                // Perform Voice Name checks and Voice Retrieval if not "juli"
+                if (voiceName != "juli") {
+                    var voice;
+                    
+                    // Check if Voice Name is an available choice or "random" 
+                    if (voiceName == "random") {
+                        voiceName = availableVoiceNames[(Math.floor(Math.random() * availableVoiceNames.length))];
+                        voice = voices[voiceName];
+                    } else if (!availableVoiceNames.includes(voiceName)) {
+                        console.log("Voice Name \"" + voiceName + "\" NOT an available choice.")
+                        voice = voices["will"];
+                    } else { voice = voices[voiceName]; }
+                    
+                    // Set Voice values accordingly
+                    voiceID = voice.voice_id;
+                    voiceSettings = voice.voice_settings;
+                    modelID = voice.model_id;
+                    voiceVolume = voice.voice_volume;
+
+                    // If Voice has different dialogue endings, add one to the end of the Message
+                    if (voice.dialogue_endings.length != 0) {
+                        endingDialogue = voice.dialogue_endings[(Math.floor(Math.random() * voice.dialogue_endings.length))];
+                        bitsMessage += endingDialogue;
                     }
-                }
-            }
-
-            function extractVoiceName(eventMessage) {
-                // Use a regular expression to find the text within the first set of square brackets
-                var match = eventMessage.match(/\[([^\]]+)\]/);
+                } else { voiceID = voiceName; }
                 
-                // Check if a match was found
-                if (match) {
-                    // Assign the matched text to the voiceName variable
-                    var voiceName = match[1];
-                    return voiceName;
+                // Check Voice ID
+                if (voiceID) {
+                    // Remove any cheers and voice name (including brackets) from the bits message
+                    let voiceText = removeCheerWords(bitsMessage).replace('[' + voiceName + ']','').replace('[random]','').trim();
+
+                    if (voiceText) {
+                        // Convert the above text to speech using the indicated voice
+                        initiateTTS(true, voiceID, voiceSettings, voiceText, modelID);
+                    } else {
+                        // Handle the case where there is no message
+                        console.log("No message for TTS.");
+                        endProcessing();
+                    }
                 } else {
-                    // Handle the case where no brackets were found
-                    console.log("No text found within square brackets.");
-                    return "default";
+                    // Handle the case where name matches no id
+                    console.error("No ID found for voice name.");
+                    endProcessing();
                 }
             }
 
-            const cheerWords = ["cheer", "BibleThump", "cheerwhal", "Corgo", "uni", "ShowLove", "Party", "SeemsGood", "Pride", "Kappa", 
-                "FrankerZ", "HeyGuys", "DansGame", "EleGiggle", "TriHard", "Kreygasm", "4Head", "SwiftRage", "NotLikeThis", "FailFish", 
-                "VoHiYo", "PJSalt", "MrDestructoid", "bday", "RIPCheer", "Shamrock", "BitBoss", "Streamlabs", "Muxy", "HolidayCheer", 
-                "Goal", "Charity"
-            ];
+            function extractVoiceName(message) {
+                const match = message.match(/\[([^\]]+)\]/);
+                return match ? match[1].toLowerCase() : "default";
+            }
 
             function removeCheerWords(eventMessage) {
-                // Create a regular expression pattern to match any of the words followed by one or more digits
-                const regexPattern = cheerWords.map(word => `${word}\\d+`).join('|');
-                const regex = new RegExp(regexPattern, 'gi');
-                
-                // Replace the matched patterns with an empty string
-                const result = eventMessage.replace(regex, '');
-                return result;
+                // Create a regex to match any cheer words followed by digits
+                const regex = new RegExp(cheerWords.map(word => `${word}\\d+`).join('|'), 'gi');
+                return eventMessage.replace(regex, '');
+            }
+
+            function prepForBot() {
+                try {
+                    speechText.innerHTML = "";
+                    processSpeechText();
+                    changeSpeechTextContainerBackround('normal', 'butler');
+                    speechTextContainer.classList.toggle('fade');
+                    
+                    // Play Bot Filler Audio
+                    var fillerAudio = new Audio(fillerAudios[(Math.floor(Math.random() * fillerAudios.length))]);
+                    fillerAudio.play();
+                } catch (error) { console.error(error); }
+            }
+
+            async function sendMessageToBot(message) {
+                const apiUrl = "https://api.openai.com/v1/chat/completions";
+                const headers = {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${userOAToken}`
+                };
+
+                const data = {
+                    model: "gpt-4o",
+                    messages: [
+                        { role: "system", content: userBotInstructions },
+                        { role: "user", content: message }
+                    ]
+                };
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: "POST",
+                        headers: headers,
+                        body: JSON.stringify(data)
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Error: ${response.status}`);
+                    }
+
+                    const responseData = await response.json();
+
+                    // Remove any quotation marks and replace line breaks with spaces to prevent any TTS issues
+                    resolveSubAlertTTS("[butler] " + responseData.choices[0].message.content.replace(/"/g, '').replace(/\n/g, " "));
+                } catch (error) {
+                    console.error("Error sending message: ", error);
+                    endProcessing();
+                }
             }
             
-            const speechText = document.querySelector('#speechText');
-            const speechTextContainer = document.querySelector('#alertBox');
+            const speechText = document.getElementById('speechText');
+            const speechTextContainer = document.getElementById('alertBox');
 
-            function textToSpeech(voiceID, voiceSettings, voiceText, modelID) {
+            function initiateTTS(playAlertAudio, voiceID, voiceSettings, voiceText, modelID) {
 
                 if (voiceID == "juli") {
                     speechText.innerHTML = "Time to ban " + twitchUserName + "!";
                     processSpeechText();
-                    speechTextContainer.classList.remove("normalTTSBackground");
-                    speechTextContainer.classList.add("juliBanTTSBackground");
+                    changeSpeechTextContainerBackround('normal', 'juliBan');
                     speechTextContainer.classList.toggle('fade');
-                    var alertAudio = new Audio('../assets/audio/twitch-bits-donation-sound-effect-sfx.mp3');
-                    alertAudio.addEventListener("ended", function() {
-                        var speechAudio = new Audio('../assets/audio/juli_yeah-thats-a-ban.mp3');
-                        speechAudio.addEventListener("ended", function() {
-                            speechTextContainer.classList.toggle('fade');
-                            setTimeout(function() {
-                                speechTextContainer.classList.remove("juliBanTTSBackground");
-                                speechTextContainer.classList.add("normalTTSBackground");
-                                isProcessing = false;
-                                processEventQueue(); // Process the next event in the queue
-                            }, 1000);
+                    if (playAlertAudio) {
+                        var alertAudio = new Audio(alertAudioSource);
+                        alertAudio.addEventListener("ended", function() {
+                            playTTSAudio('../assets/audio/juli_yeah-thats-a-ban.mp3', true, 'juliBan', 'normal');
                         });
-                        var speechPlayPromise = speechAudio.play();
-                        if (speechPlayPromise !== undefined) {
-                            speechPlayPromise.then(_ => {
+                        var alertPlayPromise = alertAudio.play();
+                        if (alertPlayPromise !== undefined) {
+                            alertPlayPromise.then(_ => {
                                 // Autoplay started!
                             }).catch(error => {
                                 // Autoplay was prevented.
                                 console.error(error);
                                 speechTextContainer.classList.toggle('fade');
                                 setTimeout(function() {
-                                    speechTextContainer.classList.remove("juliBanTTSBackground");
-                                    speechTextContainer.classList.add("normalTTSBackground");
-                                    isProcessing = false;
-                                    processEventQueue(); // Process the next event in the queue
+                                    changeSpeechTextContainerBackround('juliBan', 'normal');
+                                    endProcessing();
                                 }, 1000);
                             });
                         }
-                    });
-                    var alertPlayPromise = alertAudio.play();
-                    if (alertPlayPromise !== undefined) {
-                        alertPlayPromise.then(_ => {
-                            // Autoplay started!
-                        }).catch(error => {
-                            // Autoplay was prevented.
-                            console.error(error);
-                            speechTextContainer.classList.toggle('fade');
-                            setTimeout(function() {
-                                speechTextContainer.classList.remove("juliBanTTSBackground");
-                                speechTextContainer.classList.add("normalTTSBackground");
-                                isProcessing = false;
-                                processEventQueue(); // Process the next event in the queue
-                            }, 1000);
-                        });
-                    }
+                    } else { playTTSAudio('../assets/audio/juli_yeah-thats-a-ban.mp3', true, 'juliBan', 'normal'); }
                 } else {
                     // Build options array needed for Elevenlabs API request
                     var elevenlabsOptions = {
@@ -592,43 +586,31 @@
                     fetch('https://api.elevenlabs.io/v1/text-to-speech/' + voiceID + '?enable_logging=false', elevenlabsOptions)
                         .then(res => res.blob())
                         .then(blob => {
-                            speechText.innerHTML = voiceText.replace(skeletorLaugh,'');
+                            speechText.innerHTML = voiceText.replace(endingDialogue,'');
                             processSpeechText();
-                            speechTextContainer.classList.toggle('fade');
-                            var alertAudio = new Audio('../assets/audio/twitch-bits-donation-sound-effect-sfx.mp3');
-                            alertAudio.addEventListener("ended", function() {
-                                const url = URL.createObjectURL(blob);
-                                var speechAudio = new Audio(url);
-                                speechAudio.volume = voiceVolume;
-                                speechAudio.addEventListener("ended", function() {
-                                    speechTextContainer.classList.toggle('fade');
-                                    isProcessing = false;
-                                    processEventQueue(); // Process the next event in the queue
+                            if (!isBot) { speechTextContainer.classList.toggle('fade'); }
+                            if (playAlertAudio) {
+                                var alertAudio = new Audio(alertAudioSource);
+                                alertAudio.addEventListener("ended", function() {
+                                    const url = URL.createObjectURL(blob);
+                                    if (isBot) { playTTSAudio(url, true, 'butler', 'normal'); }
+                                    else { playTTSAudio(url, false, null, null); }
                                 });
-                                var speechPlayPromise = speechAudio.play();
-                                if (speechPlayPromise !== undefined) {
-                                    speechPlayPromise.then(_ => {
+                                var alertPlayPromise = alertAudio.play();
+                                if (alertPlayPromise !== undefined) {
+                                    alertPlayPromise.then(_ => {
                                         // Autoplay started!
                                     }).catch(error => {
                                         // Autoplay was prevented.
                                         console.error(error);
                                         speechTextContainer.classList.toggle('fade');
-                                        isProcessing = false;
-                                        processEventQueue(); // Process the next event in the queue
+                                        endProcessing();
                                     });
                                 }
-                            });
-                            var alertPlayPromise = alertAudio.play();
-                            if (alertPlayPromise !== undefined) {
-                                alertPlayPromise.then(_ => {
-                                    // Autoplay started!
-                                }).catch(error => {
-                                    // Autoplay was prevented.
-                                    console.error(error);
-                                    speechTextContainer.classList.toggle('fade');
-                                    isProcessing = false;
-                                    processEventQueue(); // Process the next event in the queue
-                                });
+                            } else {
+                                const url = URL.createObjectURL(blob);
+                                if (isBot) { playTTSAudio(url, true, 'butler', 'normal'); }
+                                else { playTTSAudio(url, false, null, null); }
                             }
                         }).catch(err => console.error(err));
                 }
@@ -647,171 +629,131 @@
                     if (speechText.clientHeight >= speechTextContainer.clientHeight) {
                         resizeSpeechTextToFit();
                     }
-                } catch (err) {
+                } catch (err) { }
+            }
+            
+            function changeSpeechTextContainerBackround(fromClassPrefix, toClassPrefix) {
+                speechTextContainer.classList.remove(fromClassPrefix + "TTSBackground");
+                speechTextContainer.classList.add(toClassPrefix + "TTSBackground");
+                if (toClassPrefix == "butler") {
+                    speechText.style.backdropFilter = "blur(3px)";
+                    speechText.style.webkitBackdropFilter = "blur(3px)";
+                } else {
+                    speechText.style.backdropFilter = "";
+                    speechText.style.webkitBackdropFilter = "";
+                }
+            }
 
+            function playTTSAudio(ttsAudioSource, changeBackground, fromClassPrefix, toClassPrefix) {
+                var speechAudio = new Audio(ttsAudioSource);
+                speechAudio.addEventListener("ended", function() {
+                    speechTextContainer.classList.toggle('fade');
+                    setTimeout(function() {
+                        if (changeBackground && fromClassPrefix && toClassPrefix) { changeSpeechTextContainerBackround(fromClassPrefix, toClassPrefix); }
+                        endProcessing();
+                    }, 1000);
+                });
+                var speechPlayPromise = speechAudio.play();
+                if (speechPlayPromise !== undefined) {
+                    speechPlayPromise.then(_ => {
+                        // Autoplay started!
+                    }).catch(error => {
+                        // Autoplay was prevented.
+                        console.error(error);
+                        speechTextContainer.classList.toggle('fade');
+                        setTimeout(function() {
+                            if (changeBackground && fromClassPrefix && toClassPrefix) { changeSpeechTextContainerBackround(fromClassPrefix, toClassPrefix); }
+                            endProcessing();
+                        }, 1000);
+                    });
                 }
             }
 
             function resolveSubAlertTTS(subMessage) {
-                // Use function to retrieve a voice name from the bits message
+                // Retrieve Voice Name from the Sub Message
                 var voiceName = extractVoiceName(subMessage);
                 
-                // "Random" Check
-                if (!voiceName || voiceName.toLowerCase() == "default" || voiceName.toLowerCase() == "random") {
-                    voiceName = voiceNames[(Math.floor(Math.random() * voiceNames.length))];
-                }
-
-                // Retrieve the corresponding voice info based off of the voice name
+                // Set the available Voice Names based on Bot
+                var availableVoiceNames = isBot ? allVoiceNames : unrestrictedVoiceNames;
+                    
+                // Initialize Necessary Variables for Voice
                 var voiceID = null;
                 var voiceSettings = "";
                 var modelID = "";
-
-                // TODO Change from using IF statements to database lookup
-                if (voiceName.toLowerCase() == "hifumi") {
-                    voiceID = voices.hifumi.voice_id;
-                    voiceSettings = voices.hifumi.voice_settings;
-                    modelID = voices.hifumi.model_id;
-                    voiceVolume = 1.0;
-                } else if (voiceName.toLowerCase() == "skeletor") {
-                    voiceID = voices.skeletor.voice_id;
-                    voiceSettings = voices.skeletor.voice_settings;
-                    modelID = voices.skeletor.model_id;
-                    voiceVolume = 0.25;
-                    skeletorLaugh = skeletorLaughs[(Math.floor(Math.random() * skeletorLaughs.length))];
-                    subMessage += skeletorLaugh;
-                } else if (voiceName.toLowerCase() == "juli") {
-                    voiceID = "juli";
-                } else if (voiceName.toLowerCase() == "child") {
-                    voiceID = voices.child.voice_id;
-                    voiceSettings = voices.child.voice_settings;
-                    modelID = voices.child.model_id;
-                    voiceVolume = 0.5;
-                } else if (voiceName.toLowerCase() == "emo") {
-                    voiceID = voices.emo.voice_id;
-                    voiceSettings = voices.emo.voice_settings;
-                    modelID = voices.emo.model_id;
-                    voiceVolume = 0.5;
-                } else if (voiceName.toLowerCase() == "sobbing") {
-                    voiceID = voices.sobbing.voice_id;
-                    voiceSettings = voices.sobbing.voice_settings;
-                    modelID = voices.sobbing.model_id;
-                    voiceVolume = 0.5;
-                } else if (voiceName.toLowerCase() == "trailer") {
-                    voiceID = voices.trailer.voice_id;
-                    voiceSettings = voices.trailer.voice_settings;
-                    modelID = voices.trailer.model_id;
-                    voiceVolume = 0.25;
-                } else if (voiceName.toLowerCase() == "whisper") {
-                    voiceID = voices.whisper.voice_id;
-                    voiceSettings = voices.whisper.voice_settings;
-                    modelID = voices.whisper.model_id;
-                    voiceVolume = 0.75;
-                } else if (voiceName.toLowerCase() == "hatch") {
-                    voiceID = voices.hatch.voice_id;
-                    voiceSettings = voices.hatch.voice_settings;
-                    modelID = voices.hatch.model_id;
-                    voiceVolume = 0.75;
-                } else if (voiceName.toLowerCase() == "mayor") {
-                    voiceID = voices.mayor.voice_id;
-                    voiceSettings = voices.mayor.voice_settings;
-                    modelID = voices.mayor.model_id;
-                    voiceVolume = 1.0;
-                } else {
-                    // Default voice "Will"
-                    voiceID = voices.will.voice_id;
-                    voiceSettings = voices.will.voice_settings;
-                    modelID = voices.will.model_id;
-                    voiceVolume = 0.5;
-                }
                 
-                try {
-                    // Remove any cheers and voice name (including brackets) from the sub message
-                    var voiceText = removeCheerWords(subMessage).replace('[' + voiceName + ']','').replace('[random]','');
+                // Perform Voice Name checks and Voice Retrieval if not "juli"
+                if (voiceName != "juli") {
+                    var voice;
+                    
+                    // Check if Voice Name is an available choice or "random" 
+                    if (voiceName == "default" || voiceName == "random" || !availableVoiceNames.includes(voiceName)) {
+                        voiceName = availableVoiceNames[(Math.floor(Math.random() * availableVoiceNames.length))];
+                        voice = voices[voiceName];
+                    } else { voice = voices[voiceName]; }
+                    
+                    // Set Voice values accordingly
+                    voiceID = voice.voice_id;
+                    voiceSettings = voice.voice_settings;
+                    modelID = voice.model_id;
+                    voiceVolume = voice.voice_volume;
 
-                    if (voiceText != null && voiceText.trim().length != 0) {
+                    // If Voice has different dialogue endings, add one to the end of the Message
+                    if (voice.dialogue_endings.length != 0) {
+                        endingDialogue = voice.dialogue_endings[(Math.floor(Math.random() * voice.dialogue_endings.length))];
+                        subMessage += endingDialogue;
+                    }
+                } else { voiceID = voiceName; }
+                
+                // Check Voice ID
+                if (voiceID) {
+                    // Remove any cheers and voice name (including brackets) from the bits message
+                    let voiceText = removeCheerWords(subMessage).replace('[' + voiceName + ']','').replace('[random]','').trim();
+
+                    if (voiceText) {
                         // Convert the above text to speech using the indicated voice
-                        if (voiceID == "juli") {
-                            speechText.innerHTML = "Time to ban " + twitchUserName + "!";
-                            processSpeechText();
-                            speechTextContainer.classList.remove("normalTTSBackground");
-                            speechTextContainer.classList.add("juliBanTTSBackground");
-                            speechTextContainer.classList.toggle('fade');
-                            var speechAudio = new Audio('../assets/audio/juli_yeah-thats-a-ban.mp3');
-                            speechAudio.addEventListener("ended", function() {
-                                speechTextContainer.classList.toggle('fade');
-                                setTimeout(function() {
-                                    speechTextContainer.classList.remove("juliBanTTSBackground");
-                                    speechTextContainer.classList.add("normalTTSBackground");
-                                    isProcessing = false;
-                                    processEventQueue(); // Process the next event in the queue
-                                }, 1000);
-                            });
-                            var speechPlayPromise = speechAudio.play();
-                            if (speechPlayPromise !== undefined) {
-                                speechPlayPromise.then(_ => {
-                                    // Autoplay started!
-                                }).catch(error => {
-                                    // Autoplay was prevented.
-                                    console.error(error);
-                                    speechTextContainer.classList.toggle('fade');
-                                    setTimeout(function() {
-                                        speechTextContainer.classList.remove("juliBanTTSBackground");
-                                        speechTextContainer.classList.add("normalTTSBackground");
-                                        isProcessing = false;
-                                        processEventQueue(); // Process the next event in the queue
-                                    }, 1000);
-                                });
-                            }
-                        } else {
-                            // Build options array needed for Elevenlabs API request
-                            var elevenlabsOptions = {
-                                method: 'POST',
-                                headers: {
-                                    'xi-api-key': userELToken,
-                                    'Content-Type': 'application/json'
-                                },
-                                body: '{"voice_settings":' + voiceSettings + ',"text":"' + voiceText.trim() + '","model_id":"' + modelID + '"}'
-                            };
-                        
-                            fetch('https://api.elevenlabs.io/v1/text-to-speech/' + voiceID + '?enable_logging=false', elevenlabsOptions)
-                                .then(res => res.blob())
-                                .then(blob => {
-                                    speechText.innerHTML = voiceText.replace(skeletorLaugh,'');
-                                    processSpeechText();
-                                    speechTextContainer.classList.toggle('fade');
-                                    const url = URL.createObjectURL(blob);
-                                    var speechAudio = new Audio(url);
-                                    speechAudio.volume = voiceVolume;
-                                    speechAudio.addEventListener("ended", function() {
-                                        speechTextContainer.classList.toggle('fade');
-                                        isProcessing = false;
-                                        processEventQueue(); // Process the next event in the queue
-                                    });
-                                    var speechPlayPromise = speechAudio.play();
-                                    if (speechPlayPromise !== undefined) {
-                                        speechPlayPromise.then(_ => {
-                                            // Autoplay started!
-                                        }).catch(error => {
-                                            // Autoplay was prevented.
-                                            console.error(error);
-                                            speechTextContainer.classList.toggle('fade');
-                                            isProcessing = false;
-                                            processEventQueue(); // Process the next event in the queue
-                                        });
-                                    }
-                                }).catch(err => console.error(err));
-                        }
+                        initiateTTS(false, voiceID, voiceSettings, voiceText, modelID);
                     } else {
                         // Handle the case where there is no message
                         console.log("No message for TTS.");
-                        isProcessing = false;
-                        processEventQueue(); // Process the next event in the queue
+                        endProcessing();
                     }
-                } catch (err) {
-                    console.log("Unable to process TTS.", err);
-                    isProcessing = false;
-                    processEventQueue(); // Process the next event in the queue
+                } else {
+                    // Handle the case where name matches no id
+                    console.error("No ID found for voice name.");
+                    endProcessing();
                 }
+            }
+
+            function addBotBackgroundCSS(botName, botBackgroundImageURL) {
+                const style = document.createElement("style");
+                style.innerHTML = "." + botName + "TTSBackground { " + 
+                    "background: url('" + botBackgroundImageURL + "') center no-repeat transparent; " + 
+                    "background-size: cover; " + 
+                    "background-position-y: top; " + 
+                "}";
+                document.head.appendChild(style);
+            }
+
+            function createPercentageBasedArray(entryPercentList) {
+                let resultArray = [];
+
+                entryPercentList.forEach(item => {
+                    let { entry, percentage } = item;
+                    // Calculate the number of times the 'entry' should appear, based on percentage of 100
+                    let count = Math.round((percentage / 100) * 100);
+                    resultArray.push(...Array(count).fill(entry));
+                });
+
+                // Adjust the array to ensure it has exactly 100 items
+                if (resultArray.length > 100) {
+                    resultArray = resultArray.slice(0, 100);
+                } else if (resultArray.length < 100) {
+                    let deficit = 100 - resultArray.length;
+                    // If the array is too short, fill the remaining slots with the first entry in the list
+                    resultArray.push(...Array(deficit).fill(entryPercentList[0].name));
+                }
+
+                return resultArray;
             }
         </script>
 
