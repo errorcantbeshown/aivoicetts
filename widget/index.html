@@ -215,7 +215,7 @@
                     } catch (err) { console.log('Unable to retrieve Google Access Token from Session.\n' + err); }
                     if (!adminAccessToken) {
                         console.log('Refreshing Access Token...');
-                        const newTokenData = await refreshAccessToken(client_id, client_secret, refresh_token);
+                        var newTokenData = await refreshAccessToken(client_id, client_secret, refresh_token);
                         adminAccessToken = newTokenData.access_token;
                         sessionStorage.setItem("adminAccessToken", adminAccessToken);
                         sessionStorage.setItem("adminAccessTokenExpiration", (Date.now() / 1000) + newTokenData.expires_in);
