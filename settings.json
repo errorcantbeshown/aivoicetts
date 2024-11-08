@@ -1,4 +1,12 @@
 {
+  "appValues": {
+    "cheerWords": [
+      "cheer", "BibleThump", "cheerwhal", "Corgo", "uni", "ShowLove", "Party", "SeemsGood", "Pride", "Kappa", 
+      "FrankerZ", "HeyGuys", "DansGame", "EleGiggle", "TriHard", "Kreygasm", "4Head", "SwiftRage", "NotLikeThis", "FailFish", 
+      "VoHiYo", "PJSalt", "MrDestructoid", "bday", "RIPCheer", "Shamrock", "BitBoss", "Streamlabs", "Muxy", "HolidayCheer", 
+      "Goal", "Charity"
+    ]
+  },
   "googleCloudAppCredentials": {
     "appID": "ai-voice-tts",
     "apiKey": "AIzaSyDGTsKBFckpY-Fpq5FE8hgJ0SjdaUi5mEA",
