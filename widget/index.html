@@ -187,13 +187,13 @@
                     standardVoiceNames = unrestrictedVoiceNames.filter(name => name !== "mayor");
                 }
 
-                async function processAppSettings(data) {
+                function processAppSettings(data) {
                     appID = data.googleCloudAppCredentials.appID;
                     developerKey = data.googleCloudAppCredentials.apiKey;
                     userInfoSheetID = data.googleDriveDataLocations.userInfoSheetID;
                     cheerWords = data.appValues.cheerWords;
 
-                    await manageAccessToken(data.googleCloudAppCredentials.client_id, data.googleCloudAppCredentials.client_secret, data.googleCloudAppCredentials.refresh_token).then(() => {
+                    manageAccessToken(data.googleCloudAppCredentials.client_id, data.googleCloudAppCredentials.client_secret, data.googleCloudAppCredentials.refresh_token).then(() => {
                         loadSheetReadingClient();
                     }).catch(err => {
                         console.error('Unable to retrieve or refresh Access Token.', err);
@@ -201,17 +201,24 @@
                 }
 
                 async function manageAccessToken(client_id, client_secret, refresh_token) {
-                    let expiration = parseInt(sessionStorage.getItem("adminAccessTokenExpiration"));
-                    const isTokenExpired = (Date.now() / 1000) > (expiration - 300);
+                    let expiration = null;
+                    try {
+                        expiration = parseInt(sessionStorage.getItem("adminAccessTokenExpiration"));
+                        if ((Date.now()/1000) > expiration - 300) {
+                            console.log('Google Access Token in Session is expired.');
 
-                    if (isTokenExpired) {
+                            // If the Access Token is expired, remove the expiration (and try to remove the access token) from the session
+                            sessionStorage.removeItem("adminAccessTokenExpiration");
+                            try { sessionStorage.removeItem("adminAccessToken"); }
+                            catch (err) { }
+                        } else { adminAccessToken = sessionStorage.getItem("adminAccessToken"); }
+                    } catch (err) { console.log('Unable to retrieve Google Access Token from Session.\n' + err); }
+                    if (!adminAccessToken) {
                         console.log('Refreshing Access Token...');
                         const newTokenData = await refreshAccessToken(client_id, client_secret, refresh_token);
                         adminAccessToken = newTokenData.access_token;
                         sessionStorage.setItem("adminAccessToken", adminAccessToken);
                         sessionStorage.setItem("adminAccessTokenExpiration", (Date.now() / 1000) + newTokenData.expires_in);
-                    } else {
-                        adminAccessToken = sessionStorage.getItem("adminAccessToken");
                     }
                 }
             });
