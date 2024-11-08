@@ -200,7 +200,7 @@
                     });
                 }
 
-                async function manageAccessToken(client_id, client_secret, refresh_token) {
+                function manageAccessToken(client_id, client_secret, refresh_token) {
                     let expiration = parseInt(sessionStorage.getItem("adminAccessTokenExpiration"));
                     const isTokenExpired = (Date.now() / 1000) > (expiration - 300);
 
