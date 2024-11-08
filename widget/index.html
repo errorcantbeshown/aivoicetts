@@ -187,7 +187,7 @@
                     standardVoiceNames = unrestrictedVoiceNames.filter(name => name !== "mayor");
                 }
 
-                function processAppSettings(data) {
+                async function processAppSettings(data) {
                     appID = data.googleCloudAppCredentials.appID;
                     developerKey = data.googleCloudAppCredentials.apiKey;
                     userInfoSheetID = data.googleDriveDataLocations.userInfoSheetID;
