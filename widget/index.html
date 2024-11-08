@@ -255,7 +255,7 @@
             // Searches for User ID in database and sets user info variables
             function getUserInfo(userID) {
                 gapi.client.request({
-                    path: 'https://content-sheets.googleapis.com/v4/spreadsheets/' + userInfoSheetID + '/values/Sheet1!A2:D',
+                    path: 'https://content-sheets.googleapis.com/v4/spreadsheets/' + userInfoSheetID + '/values/Sheet1!A2:G',
                     method: 'GET',
                     headers: {
                         Authorization: 'Bearer ' + adminAccessToken,
