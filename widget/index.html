@@ -731,6 +731,10 @@
             }
 
             function addBotBackgroundCSS(botName, botBackgroundImageURL) {
+                // Loads the image immediately, so it's ready when the class is called
+                const img = new Image();
+                img.src = botBackgroundImageURL;
+                
                 const style = document.createElement("style");
                 style.innerHTML = "." + botName + "TTSBackground { " + 
                     "background: url('" + botBackgroundImageURL + "') center no-repeat transparent; " + 
