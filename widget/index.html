@@ -193,14 +193,14 @@
                     userInfoSheetID = data.googleDriveDataLocations.userInfoSheetID;
                     cheerWords = data.appValues.cheerWords;
 
-                    manageAccessToken(data.googleCloudAppCredentials.client_id, data.googleCloudAppCredentials.client_secret, data.googleCloudAppCredentials.refresh_token).then(() => {
+                    await manageAccessToken(data.googleCloudAppCredentials.client_id, data.googleCloudAppCredentials.client_secret, data.googleCloudAppCredentials.refresh_token).then(() => {
                         loadSheetReadingClient();
                     }).catch(err => {
                         console.error('Unable to retrieve or refresh Access Token.', err);
                     });
                 }
 
-                function manageAccessToken(client_id, client_secret, refresh_token) {
+                async function manageAccessToken(client_id, client_secret, refresh_token) {
                     let expiration = parseInt(sessionStorage.getItem("adminAccessTokenExpiration"));
                     const isTokenExpired = (Date.now() / 1000) > (expiration - 300);
 
