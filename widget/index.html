@@ -641,13 +641,6 @@
             function changeSpeechTextContainerBackround(fromClassPrefix, toClassPrefix) {
                 speechTextContainer.classList.remove(fromClassPrefix + "TTSBackground");
                 speechTextContainer.classList.add(toClassPrefix + "TTSBackground");
-                if (toClassPrefix == "butler") {
-                    speechText.style.backdropFilter = "blur(3px)";
-                    speechText.style.webkitBackdropFilter = "blur(3px)";
-                } else {
-                    speechText.style.backdropFilter = "";
-                    speechText.style.webkitBackdropFilter = "";
-                }
             }
 
             function playTTSAudio(ttsAudioSource, changeBackground, fromClassPrefix, toClassPrefix) {
