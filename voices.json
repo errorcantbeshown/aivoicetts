@@ -47,10 +47,10 @@
     ],
     "voice_volume": 0.25
   },
-  "child": {
-    "voice_id": "0m2tDjDewtOfXrhxqgrJ",
-    "voice_settings": "{\"stability\":0.5,\"similarity_boost\":0.75}",
-    "model_id": "eleven_turbo_v2",
+  "whimsy": {
+    "voice_id": "542jzeOaLKbcpZhWfJDa",
+    "voice_settings": "{\"use_speaker_boost\":true,\"stability\":0.5,\"style\":0.0,\"similarity_boost\":0.75}",
+    "model_id": "eleven_multilingual_v2",
     "dialogue_endings": "[]",
     "voice_volume": 0.50
   },
