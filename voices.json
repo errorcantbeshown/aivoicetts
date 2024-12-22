@@ -1,8 +1,8 @@
 {
-  "hatch": {
-    "voice_id": "3jS35JkXWvhHhWAXvD1S",
-    "voice_settings": "{\"use_speaker_boost\":true,\"stability\":0.75,\"style\":0.5,\"similarity_boost\":1.00}",
-    "model_id": "eleven_multilingual_v2",
+  "cockney": {
+    "voice_id": "1TE7ou3jyxHsyRehUuMB",
+    "voice_settings": "{\"stability\":0.3,\"similarity_boost\":0.8}",
+    "model_id": "eleven_flash_v2_5",
     "dialogue_endings": "[]",
     "voice_volume": 0.75
   },
