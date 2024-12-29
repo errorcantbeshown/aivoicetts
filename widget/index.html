@@ -88,6 +88,10 @@
             var userOAToken = null;
             var userBotBackgroundImageURL = "../assets/images/bot-butler_placeholder.png";
             var userBotInstructions = "";
+            var userKeyString = "";
+            var userAppClientID = "";
+            var userTwitchID = "";
+            var channelPointRewardID = "";
             var cheerWords;
             var twitchUserName = "Anonymous";
             
@@ -126,11 +130,18 @@
             function handleEvent(event) {
                 return new Promise((resolve, reject) => {
                     try {
-                        // Here you could add more event handling functions as needed
-                        Promise.all([
-                            handleStreamLabsTwitchEvent(event)
-                            // Add other functions if you have more event types
-                        ]).then(resolve).catch(reject);
+                        const eventHandlers = [];
+                        // Determine Streamlabs or Twitch EventSub
+                        if (event.for) {
+                            eventHandlers.push(handleStreamLabsTwitchEvent(event));
+                        } else {
+                            eventHandlers.push(handleTwitchEventNotification(event));
+                        }
+                        
+                        // Pass the different handlers
+                        Promise.all(eventHandlers)
+                        .then(resolve)
+                        .catch(reject);
                     } catch (error) {
                         reject(error);
                         endProcessing();
@@ -275,12 +286,28 @@
                         var userInfoIndex = findIndex(values, userID);
                         if (userInfoIndex[0] != -1 && userInfoIndex[1] == 0) {
                             console.log('User Info found!');
-                            userInfoValues = [ values[userInfoIndex[0]][0], values[userInfoIndex[0]][1], values[userInfoIndex[0]][2], values[userInfoIndex[0]][3], values[userInfoIndex[0]][4], values[userInfoIndex[0]][5], values[userInfoIndex[0]][6] ];
+                            userInfoValues = [
+                                values[userInfoIndex[0]][0],
+                                values[userInfoIndex[0]][1],
+                                values[userInfoIndex[0]][2],
+                                values[userInfoIndex[0]][3],
+                                values[userInfoIndex[0]][4],
+                                values[userInfoIndex[0]][5],
+                                values[userInfoIndex[0]][6],
+                                values[userInfoIndex[0]][7],
+                                values[userInfoIndex[0]][8],
+                                values[userInfoIndex[0]][9],
+                                values[userInfoIndex[0]][10]
+                            ];
                             userName = userInfoValues[1];
                             userSLToken = userInfoValues[2];
                             userELToken = userInfoValues[3];
                             userOAToken = userInfoValues[4];
                             userBotInstructions = userInfoValues[6];
+                            userKeyString = userInfoValues[7];
+                            userAppClientID = userInfoValues[8];
+                            userTwitchID = userInfoValues[9];
+                            channelPointRewardID = userInfoValues[10];
 
                             // Bot Background Image
                             if (userInfoValues[5]) { userBotBackgroundImageURL = userInfoValues[5]; }
@@ -297,6 +324,9 @@
                                     processEventQueue(); // Start processing the queue
                                 }
                             });
+
+                            // Connect to 
+                            connectToTwitchEventSub();
                         } else {
                             // Handle the case were no match is found in the first column
                             console.error('User not found! Index: ' + userInfoIndex);
@@ -336,6 +366,181 @@
                 // If keyString is not found then -1 is returned
                 return result;
             }
+
+            // Function to get a Twitch OAuth token
+            async function getTwitchOAuthToken() {
+                const response = await fetch('https://app.aivoicetts.com/GetTwitchAccessToken?id=' + userTwitchID, {
+                    method: 'POST'
+                });
+
+                const data = await response.text();
+                twitchAccessToken = data;
+                sessionStorage.setItem("twitchAccessToken", twitchAccessToken);
+                return data;
+            }
+
+            // Function to validate a Twitch Access Token
+            async function validateTwitchToken(accessToken) {
+                const validationUrl = 'https://id.twitch.tv/oauth2/validate';
+
+                if (accessToken) {
+                    try {
+                        const response = await fetch(validationUrl, {
+                            method: 'GET',
+                            headers: {
+                                'Authorization': 'OAuth ' + accessToken
+                            }
+                        });
+
+                        if (response.ok) {
+                            console.log('Twitch Access Token is valid.');
+                            return true;
+                        } else {
+                            console.warn('Twitch Access Token is invalid or expired.');
+                            sessionStorage.removeItem("twitchAccessToken");
+                            return false;
+                        }
+                    } catch (error) {
+                        console.error('Error validating token:', error);
+                        sessionStorage.removeItem("twitchAccessToken");
+                        return false;
+                    }
+                } else {
+                    console.log('No saved Twitch Access Token found.');
+                    return false;
+                }
+            }
+
+            // Function to ensure a valid Twitch Access Token
+            async function ensureValidTwitchToken(accessToken) {
+                const isValid = await validateTwitchToken(accessToken);
+
+                if (!isValid) {
+                    console.log('Fetching a new Twitch Access Token...');
+                    try {
+                        const newAccessToken = await getTwitchOAuthToken();
+                        console.log('New Twitch Access Token obtained.');
+                        return newAccessToken;
+                    } catch (error) {
+                        console.error('Error fetching new Twitch Access Token:', error);
+                        throw error;
+                    }
+                }
+
+                return accessToken;
+            }
+
+            // Connect to Twitch EventSub WebSocket
+            const connectToTwitchEventSub = () => {
+                const socket = new WebSocket("wss://eventsub.wss.twitch.tv/ws");
+
+                socket.onopen = () => {
+                    console.log("WebSocket connection established.");
+                };
+
+                socket.onmessage = async (event) => {
+                    const message = JSON.parse(event.data);
+
+                    if (message.metadata?.message_type === "session_welcome") {
+                        console.log("Twitch API Session Established:", message.payload.session);
+                        const sessionId = message.payload.session.id;
+                        await subscribeToEvents(sessionId);
+                    } else if (message.metadata?.message_type === "notification") {
+                        eventQueue.push(message.payload);
+                        processEventQueue(); // Start processing the queue
+                    }
+                };
+
+                socket.onerror = (error) => {
+                    console.error("WebSocket error:", error);
+                };
+
+                socket.onclose = (event) => {
+                    console.log("WebSocket closed:", event);
+                    // Optionally implement reconnection logic here
+                    //console.log('WebSocket closed. Attempting to reconnect...');
+                    setTimeout(connectToTwitchEventSub, 5000);
+                };
+
+                return socket;
+            };
+
+            // Subscribe to the required events
+            const subscribeToEvents = async (sessionId) => {
+                const url = "https://api.twitch.tv/helix/eventsub/subscriptions";
+
+                const events = [
+                    {
+                        type: "channel.channel_points_custom_reward_redemption.add",
+                        condition: { broadcaster_user_id: userTwitchID }
+                    }
+                ];
+
+                for (const event of events) {
+                    const payload = {
+                        ...event,
+                        version: "1",
+                        transport: {
+                            method: "websocket",
+                            session_id: sessionId,
+                        },
+                    };
+
+                    const oauthToken = await ensureValidTwitchToken(twitchAccessToken);
+
+                    const headers = {
+                        "Client-ID": userAppClientID,
+                        Authorization: 'Bearer ' + oauthToken,
+                        "Content-Type": "application/json",
+                    };
+
+                    try {
+                        const response = await fetch(url, {
+                            method: "POST",
+                            headers,
+                            body: JSON.stringify(payload),
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            console.error(`Failed to subscribe to ${event.type}:`, errorData);
+                        } else {
+                            const responseData = await response.json();
+                            console.log(`Subscription to ${event.type} successful:`, responseData);
+                        }
+                    } catch (error) {
+                        console.error(`Error subscribing to ${event.type}:`, error);
+                    }
+                }
+            };
+
+            // Handle incoming event notifications
+            const handleTwitchEventNotification = (eventNotification) => {
+                return new Promise((resolve, reject) => {
+                    const eventType = eventNotification.subscription.type;
+                    const eventData = eventNotification.event;
+                    switch (eventType) {
+                        case "channel.channel_points_custom_reward_redemption.add":
+                            //console.log("Channel Point Redemption:", eventData);
+                            if (eventData.reward.id === channelPointRewardID) {
+                                // Save Username
+                                try { 
+                                    twitchUserName = eventData.user_name; 
+                                } catch (err) {
+                                    console.log("Unable to read name from Event.", err);
+                                    twitchUserName = "Anonymous"; // Reset back to "Anonymous", just in case
+                                }
+                                checkForTTS(100, eventData.user_input.replace(/"/g, ''));
+                            }
+                            resolve("Channel Point Redemption processed");
+                            break;
+                        default:
+                            // Failsafe?
+                            resolve("Do Nothing.");
+                            endProcessing();
+                    }
+                });
+            };
 
             function handleStreamLabsTwitchEvent(eventData) {
                 return new Promise((resolve, reject) => {
