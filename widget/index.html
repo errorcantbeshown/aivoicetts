@@ -370,7 +370,7 @@
 
             // Function to get a Twitch OAuth token
             async function getTwitchOAuthToken() {
-                const response = await fetch('https://app.aivoicetts.com/GetTwitchAccessToken?id=' + userTwitchID, {
+                const response = await fetch('https://app.aivoicetts.com/GetTwitchAccessToken?id=' + userKeyString, {
                     method: 'POST'
                 });
 
