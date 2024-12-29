@@ -532,7 +532,7 @@
                                     twitchUserName = "Anonymous"; // Reset back to "Anonymous", just in case
                                 }
                                 resolveChannelPointTTS(100, eventData.user_input.replace(/"/g, ''));
-                            }
+                            } else { endProcessing(); }
                             resolve("Channel Point Redemption processed");
                             break;
                         default:
