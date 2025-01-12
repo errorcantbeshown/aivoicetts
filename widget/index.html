@@ -583,7 +583,7 @@
                                 if (eventData.message[0].message) {
                                     isBot = false;
                                     setTimeout(function() {
-                                        resolveSubAlertTTS(eventData.message[0].message);
+                                        resolveSubAlertTTS(eventData.message[0].message.replace(/"/g, ''));
                                     }, 3000);
                                 } else {
                                     if (eventData.message[0].subscriber_name) {
