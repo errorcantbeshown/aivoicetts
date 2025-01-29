@@ -152,7 +152,16 @@
 
             function endProcessing() {
                 isProcessing = false;
-                processEventQueue(); // Process the next event in the queue
+                try {
+                    if (speechTextContainer.classList.contains('fade')) {
+                        processEventQueue(); // Process the next event in the queue
+                    } else {
+                        speechTextContainer.classList.toggle('fade');
+                        processEventQueue(); // Process the next event in the queue
+                    }
+                } catch (error) {
+                    processEventQueue(); // Process the next event in the queue
+                }
             }
             
             $(document).ready(function() {
