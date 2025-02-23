@@ -152,16 +152,7 @@
 
             function endProcessing() {
                 isProcessing = false;
-                try {
-                    if (speechTextContainer.classList.contains('fade')) {
-                        processEventQueue(); // Process the next event in the queue
-                    } else {
-                        speechTextContainer.classList.toggle('fade');
-                        processEventQueue(); // Process the next event in the queue
-                    }
-                } catch (error) {
-                    processEventQueue(); // Process the next event in the queue
-                }
+                processEventQueue(); // Process the next event in the queue
             }
             
             $(document).ready(function() {
@@ -540,7 +531,7 @@
                                     console.log("Unable to read name from Event.", err);
                                     twitchUserName = "Anonymous"; // Reset back to "Anonymous", just in case
                                 }
-                                resolveChannelPointTTS(100, eventData.user_input.replace(/"/g, ''));
+                                resolveChannelPointTTS(100, eventData.user_input.replace(/"/g, '').replace(/[“”]/g, '').replace(/[‘’]/g, ''));
                             } else { endProcessing(); }
                             resolve("Channel Point Redemption processed");
                             break;
@@ -573,13 +564,13 @@
                                     console.log("Received Test Alert.");
                                     console.log(eventData.message);
                                     if (bitsAmount >= premiumVoiceBitsAmount) {
-                                        resolveCheerAlertTTS(bitsAmount, "[mayor] " + eventData.message[0].message.replace(/"/g, ''));
+                                        resolveCheerAlertTTS(bitsAmount, "[mayor] " + eventData.message[0].message.replace(/"/g, '').replace(/[“”]/g, '').replace(/[‘’]/g, ''));
                                     } else if (parseInt(eventData.message[0].amount) >= 1) {
-                                        resolveCheerAlertTTS(bitsAmount, "[hifumi] " + eventData.message[0].message.replace(/"/g, ''));
+                                        resolveCheerAlertTTS(bitsAmount, "[hifumi] " + eventData.message[0].message.replace(/"/g, '').replace(/[“”]/g, '').replace(/[‘’]/g, ''));
                                     }
                                 } else {
                                     if (bitsAmount >= 1) {
-                                        resolveCheerAlertTTS(bitsAmount, eventData.message[0].message.replace(/"/g, ''));
+                                        resolveCheerAlertTTS(bitsAmount, eventData.message[0].message.replace(/"/g, '').replace(/[“”]/g, '').replace(/[‘’]/g, ''));
                                     }
                                 }
                             }
@@ -592,7 +583,7 @@
                                 if (eventData.message[0].message) {
                                     isBot = false;
                                     setTimeout(function() {
-                                        resolveSubAlertTTS(eventData.message[0].message.replace(/"/g, ''));
+                                        resolveSubAlertTTS(eventData.message[0].message.replace(/"/g, '').replace(/[“”]/g, '').replace(/[‘’]/g, ''));
                                     }, 3000);
                                 } else {
                                     if (eventData.message[0].subscriber_name) {
