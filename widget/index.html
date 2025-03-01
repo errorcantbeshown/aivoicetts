@@ -275,7 +275,7 @@
             // Searches for User ID in database and sets user info variables
             function getUserInfo(userID) {
                 gapi.client.request({
-                    path: 'https://content-sheets.googleapis.com/v4/spreadsheets/' + userInfoSheetID + '/values/Sheet1!A2:K',
+                    path: 'https://content-sheets.googleapis.com/v4/spreadsheets/' + userInfoSheetID + '/values/Sheet1!A2:L',
                     method: 'GET',
                     headers: {
                         Authorization: 'Bearer ' + adminAccessToken,
@@ -787,8 +787,7 @@
 
                 const preppedUserMessage = removeCheerWords(message).replace('[' + character + ']','').replace(/"/g, '').replace(/[“”]/g, '').replace(/[‘’]/g, '').trim();
                 const messageToAI = "The message from your client in the following french brackets: {" + preppedUserMessage + "}";
-                console.log(userLawyerInstructions);
-                console.log(messageToAI);
+                
                 const data = {
                     model: "gpt-4o",
                     messages: [
