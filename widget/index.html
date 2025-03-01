@@ -786,7 +786,7 @@
                 };
 
                 const preppedUserMessage = removeCheerWords(message).replace('[' + character + ']','').replace(/"/g, '').replace(/[“”]/g, '').replace(/[‘’]/g, '').trim();
-                const messageToAI = "The message from your client in the following french brackets: {" + preppedUserMessage + "}";
+                const messageToAI = "Your client's Twitch username is \"" + twitchUserName + "\" and the message they just gave you is in the following french brackets: {" + preppedUserMessage + "}";
                 
                 const data = {
                     model: "gpt-4o",
