@@ -1,4 +1,11 @@
 {
+  "butler": {
+    "voice_id": "9ezthRGvvjquu3KtNxd9",
+    "voice_settings": "{\"use_speaker_boost\":true,\"stability\":0.5,\"style\":0.0,\"similarity_boost\":0.75}",
+    "model_id": "eleven_multilingual_v2",
+    "dialogue_endings": "[]",
+    "voice_volume": 0.75
+  },
   "cockney": {
     "voice_id": "1TE7ou3jyxHsyRehUuMB",
     "voice_settings": "{\"stability\":0.3,\"similarity_boost\":0.8}",
@@ -6,12 +13,26 @@
     "dialogue_endings": "[]",
     "voice_volume": 0.75
   },
-  "butler": {
-    "voice_id": "9ezthRGvvjquu3KtNxd9",
-    "voice_settings": "{\"use_speaker_boost\":true,\"stability\":0.5,\"style\":0.0,\"similarity_boost\":0.75}",
+  "cowboy": {
+    "voice_id": "KTPVrSVAEUSJRClDzBw7",
+    "voice_settings": "{\"use_speaker_boost\":true,\"stability\":0.3,\"style\":0.48,\"similarity_boost\":0.95}",
     "model_id": "eleven_multilingual_v2",
     "dialogue_endings": "[]",
-    "voice_volume": 0.75
+    "voice_volume": 0.50
+  },
+  "demon": {
+    "voice_id": "vfaqCOvlrKi4Zp7C2IAm",
+    "voice_settings": "{\"use_speaker_boost\":true,\"stability\":0.49,\"style\":0.0,\"similarity_boost\":0.46}",
+    "model_id": "eleven_multilingual_v2",
+    "dialogue_endings": "[]",
+    "voice_volume": 0.50
+  },
+  "emo": {
+    "voice_id": "wVOQaU8CfoRJqCWsxoLv",
+    "voice_settings": "{\"stability\":0.5,\"similarity_boost\":0.75}",
+    "model_id": "eleven_turbo_v2",
+    "dialogue_endings": "[]",
+    "voice_volume": 0.50
   },
   "hifumi": {
     "voice_id": "11nykyL7h0pYd7hh1lA5",
@@ -20,19 +41,19 @@
     "dialogue_endings": "[]",
     "voice_volume": 1.00
   },
+  "lawyer": {
+    "voice_id": "zGw1MayuXJEVWol6mFfg",
+    "voice_settings": "{\"use_speaker_boost\":true,\"stability\":0.46,\"style\":0.64,\"similarity_boost\":0.77}",
+    "model_id": "eleven_multilingual_v2",
+    "dialogue_endings": "[]",
+    "voice_volume": 0.50
+  },
   "mayor": {
     "voice_id": "19AzCRtlVnWKYSa1c4n2",
     "voice_settings": "{\"use_speaker_boost\":true,\"stability\":0.5,\"style\":0.4,\"similarity_boost\":0.75}",
     "model_id": "eleven_multilingual_v2",
     "dialogue_endings": "[]",
     "voice_volume": 1.00
-  },
-  "will": {
-    "voice_id": "bIHbv24MWmeRgasZH58o",
-    "voice_settings": "{\"use_speaker_boost\":true,\"stability\":0.5,\"style\":0.0,\"similarity_boost\":0.75}",
-    "model_id": "eleven_multilingual_v2",
-    "dialogue_endings": "[]",
-    "voice_volume": 0.50
   },
   "skeletor": {
     "voice_id": "ZFUDJoAF72mngWJrCAn6",
@@ -46,20 +67,6 @@
       " hahahahahahahahahaaaaaaaaaahhhhh"
     ],
     "voice_volume": 0.25
-  },
-  "whimsy": {
-    "voice_id": "542jzeOaLKbcpZhWfJDa",
-    "voice_settings": "{\"use_speaker_boost\":true,\"stability\":0.5,\"style\":0.0,\"similarity_boost\":0.75}",
-    "model_id": "eleven_multilingual_v2",
-    "dialogue_endings": "[]",
-    "voice_volume": 0.50
-  },
-  "emo": {
-    "voice_id": "wVOQaU8CfoRJqCWsxoLv",
-    "voice_settings": "{\"stability\":0.5,\"similarity_boost\":0.75}",
-    "model_id": "eleven_turbo_v2",
-    "dialogue_endings": "[]",
-    "voice_volume": 0.50
   },
   "sobbing": {
     "voice_id": "wcIrsZmi758yTtAxuW4l",
@@ -75,11 +82,25 @@
     "dialogue_endings": "[]",
     "voice_volume": 0.25
   },
+  "whimsy": {
+    "voice_id": "542jzeOaLKbcpZhWfJDa",
+    "voice_settings": "{\"use_speaker_boost\":true,\"stability\":0.5,\"style\":0.0,\"similarity_boost\":0.75}",
+    "model_id": "eleven_multilingual_v2",
+    "dialogue_endings": "[]",
+    "voice_volume": 0.50
+  },
   "whisper": {
     "voice_id": "geVuXdUpU0lgUukWJCUE",
     "voice_settings": "{\"stability\":0.5,\"similarity_boost\":0.75}",
     "model_id": "eleven_turbo_v2",
     "dialogue_endings": "[]",
     "voice_volume": 0.75
+  },
+  "will": {
+    "voice_id": "bIHbv24MWmeRgasZH58o",
+    "voice_settings": "{\"use_speaker_boost\":true,\"stability\":0.5,\"style\":0.0,\"similarity_boost\":0.75}",
+    "model_id": "eleven_multilingual_v2",
+    "dialogue_endings": "[]",
+    "voice_volume": 0.50
   }
 }
