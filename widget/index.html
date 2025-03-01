@@ -88,6 +88,7 @@
             var userOAToken = null;
             var userBotBackgroundImageURL = "../assets/images/bot-butler_placeholder.png";
             var userBotInstructions = "";
+            var userLawyerInstructions = "";
             var userKeyString = "";
             var userAppClientID = "";
             var userTwitchID = "";
@@ -298,7 +299,8 @@
                                 values[userInfoIndex[0]][7],
                                 values[userInfoIndex[0]][8],
                                 values[userInfoIndex[0]][9],
-                                values[userInfoIndex[0]][10]
+                                values[userInfoIndex[0]][10],
+                                values[userInfoIndex[0]][11]
                             ];
                             userName = userInfoValues[1];
                             userSLToken = userInfoValues[2];
@@ -309,6 +311,7 @@
                             userAppClientID = userInfoValues[8];
                             userTwitchID = userInfoValues[9];
                             channelPointRewardID = userInfoValues[10];
+                            userLawyerInstructions = userInfoValues[11];
 
                             // Bot Background Image
                             if (userInfoValues[5]) { userBotBackgroundImageURL = userInfoValues[5]; }
@@ -650,27 +653,33 @@
 
                 // Perform Voice Name checks and Voice Retrieval if not "juli"
                 if (voiceName != "juli") {
-                    var voice;
-                    
-                    // Check if Voice Name is an available choice or "random" 
-                    if (voiceName == "random") {
-                        voiceName = availableVoiceNames[(Math.floor(Math.random() * availableVoiceNames.length))];
-                        voice = voices[voiceName];
-                    } else if (!availableVoiceNames.includes(voiceName)) {
-                        console.log("Voice Name \"" + voiceName + "\" NOT an available choice.")
-                        voice = voices["will"];
-                    } else { voice = voices[voiceName]; }
-                    
-                    // Set Voice values accordingly
-                    voiceID = voice.voice_id;
-                    voiceSettings = voice.voice_settings;
-                    modelID = voice.model_id;
-                    voiceVolume = voice.voice_volume;
+                    // Have AI rewrite the message and takeover TTS if the Voice Name is "lawyer"
+                    if (voiceName == "lawyer") {
+                        rewriteMessageUsingAI(voiceName, channelPointMessage);
+                        return;
+                    } else {
+                        var voice;
+                        
+                        // Check if Voice Name is an available choice or "random" 
+                        if (voiceName == "random") {
+                            voiceName = availableVoiceNames[(Math.floor(Math.random() * availableVoiceNames.length))];
+                            voice = voices[voiceName];
+                        } else if (!availableVoiceNames.includes(voiceName)) {
+                            console.log("Voice Name \"" + voiceName + "\" NOT an available choice.")
+                            voice = voices["will"];
+                        } else { voice = voices[voiceName]; }
+                        
+                        // Set Voice values accordingly
+                        voiceID = voice.voice_id;
+                        voiceSettings = voice.voice_settings;
+                        modelID = voice.model_id;
+                        voiceVolume = voice.voice_volume;
 
-                    // If Voice has different dialogue endings, add one to the end of the Message
-                    if (voice.dialogue_endings.length != 0) {
-                        endingDialogue = voice.dialogue_endings[(Math.floor(Math.random() * voice.dialogue_endings.length))];
-                        channelPointMessage += endingDialogue;
+                        // If Voice has different dialogue endings, add one to the end of the Message
+                        if (voice.dialogue_endings.length != 0) {
+                            endingDialogue = voice.dialogue_endings[(Math.floor(Math.random() * voice.dialogue_endings.length))];
+                            channelPointMessage += endingDialogue;
+                        }
                     }
                 } else { voiceID = voiceName; }
                 
@@ -708,27 +717,33 @@
 
                 // Perform Voice Name checks and Voice Retrieval if not "juli"
                 if (voiceName != "juli") {
-                    var voice;
-                    
-                    // Check if Voice Name is an available choice or "random" 
-                    if (voiceName == "random") {
-                        voiceName = availableVoiceNames[(Math.floor(Math.random() * availableVoiceNames.length))];
-                        voice = voices[voiceName];
-                    } else if (!availableVoiceNames.includes(voiceName)) {
-                        console.log("Voice Name \"" + voiceName + "\" NOT an available choice.")
-                        voice = voices["will"];
-                    } else { voice = voices[voiceName]; }
-                    
-                    // Set Voice values accordingly
-                    voiceID = voice.voice_id;
-                    voiceSettings = voice.voice_settings;
-                    modelID = voice.model_id;
-                    voiceVolume = voice.voice_volume;
+                    // Have AI rewrite the message and takeover TTS if the Voice Name is "lawyer"
+                    if (voiceName == "lawyer") {
+                        rewriteMessageUsingAI(voiceName, bitsMessage);
+                        return;
+                    } else {
+                        var voice;
+                        
+                        // Check if Voice Name is an available choice or "random" 
+                        if (voiceName == "random") {
+                            voiceName = availableVoiceNames[(Math.floor(Math.random() * availableVoiceNames.length))];
+                            voice = voices[voiceName];
+                        } else if (!availableVoiceNames.includes(voiceName)) {
+                            console.log("Voice Name \"" + voiceName + "\" NOT an available choice.")
+                            voice = voices["will"];
+                        } else { voice = voices[voiceName]; }
+                        
+                        // Set Voice values accordingly
+                        voiceID = voice.voice_id;
+                        voiceSettings = voice.voice_settings;
+                        modelID = voice.model_id;
+                        voiceVolume = voice.voice_volume;
 
-                    // If Voice has different dialogue endings, add one to the end of the Message
-                    if (voice.dialogue_endings.length != 0) {
-                        endingDialogue = voice.dialogue_endings[(Math.floor(Math.random() * voice.dialogue_endings.length))];
-                        bitsMessage += endingDialogue;
+                        // If Voice has different dialogue endings, add one to the end of the Message
+                        if (voice.dialogue_endings.length != 0) {
+                            endingDialogue = voice.dialogue_endings[(Math.floor(Math.random() * voice.dialogue_endings.length))];
+                            bitsMessage += endingDialogue;
+                        }
                     }
                 } else { voiceID = voiceName; }
                 
@@ -761,6 +776,82 @@
                 // Create a regex to match any cheer words followed by digits
                 const regex = new RegExp(cheerWords.map(word => `${word}\\d+`).join('|'), 'gi');
                 return eventMessage.replace(regex, '');
+            }
+
+            async function rewriteMessageUsingAI(character, message) {
+                const apiUrl = "https://api.openai.com/v1/chat/completions";
+                const headers = {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${userOAToken}`
+                };
+
+                const preppedUserMessage = removeCheerWords(message).replace('[' + character + ']','').replace(/"/g, '').replace(/[“”]/g, '').replace(/[‘’]/g, '').trim();
+                const messageToAI = "The message from your client in the following french brackets: {" + preppedUserMessage + "}"
+
+                const data = {
+                    model: "gpt-4o",
+                    messages: [
+                        { role: "system", content: userLawyerInstructions },
+                        { role: "user", content: messageToAI }
+                    ]
+                };
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: "POST",
+                        headers: headers,
+                        body: JSON.stringify(data)
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`Error: ${response.status}`);
+                    }
+
+                    const responseData = await response.json();
+
+                    // Remove any quotation marks and replace line breaks with spaces to prevent any TTS issues
+                    resolveAIRewrittenTTS("[" + character + "] " + responseData.choices[0].message.content.replace(/"/g, '').replace(/\n/g, " "));
+                } catch (error) {
+                    console.error("Error sending message: ", error);
+                    endProcessing();
+                }
+            }
+
+            function resolveAIRewrittenTTS(rewrittenMessage) {
+                // Retrieve Voice Name from the Rewritten Message
+                var voiceName = extractVoiceName(rewrittenMessage);
+                
+                // Initialize and set Voice values accordingly
+                var voice = voices[voiceName];
+                var voiceID = voice.voice_id;
+                var voiceSettings = voice.voice_settings;
+                var modelID = voice.model_id;
+                voiceVolume = voice.voice_volume;
+
+                // If Voice has different dialogue endings, add one to the end of the Message
+                if (voice.dialogue_endings.length != 0) {
+                    endingDialogue = voice.dialogue_endings[(Math.floor(Math.random() * voice.dialogue_endings.length))];
+                    rewrittenMessage += endingDialogue;
+                }
+                
+                // Check Voice ID
+                if (voiceID) {
+                    // Remove any cheers and voice name (including brackets) from the message
+                    let voiceText = removeCheerWords(rewrittenMessage).replace('[' + voiceName + ']','').trim();
+
+                    if (voiceText) {
+                        // Convert the above text to speech using the indicated voice
+                        initiateTTS(true, voiceID, voiceSettings, voiceText, modelID);
+                    } else {
+                        // Handle the case where there is no message
+                        console.log("No message for TTS.");
+                        endProcessing();
+                    }
+                } else {
+                    // Handle the case where name matches no id
+                    console.error("No ID found for voice name.");
+                    endProcessing();
+                }
             }
 
             function prepForBot() {
@@ -969,7 +1060,7 @@
                 
                 // Check Voice ID
                 if (voiceID) {
-                    // Remove any cheers and voice name (including brackets) from the bits message
+                    // Remove any cheers and voice name (including brackets) from the message
                     let voiceText = removeCheerWords(subMessage).replace('[' + voiceName + ']','').replace('[random]','').trim();
 
                     if (voiceText) {
