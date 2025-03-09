@@ -787,7 +787,7 @@
 
                 const preppedUserMessage = removeCheerWords(message).replace('[' + character + ']','').replace(/"/g, '').replace(/[“”]/g, '').replace(/[‘’]/g, '').trim();
                 const messageToAI = "Your client's Twitch username is \"" + twitchUserName + "\" and the message they just gave you is in the following french brackets: {" + preppedUserMessage + "}";
-                
+
                 const data = {
                     model: "gpt-4o",
                     messages: [
@@ -859,7 +859,7 @@
                     speechText.innerHTML = "";
                     processSpeechText();
                     changeSpeechTextContainerBackround('normal', 'butler');
-                    speechTextContainer.classList.toggle('fade');
+                    speechTextContainer.classList.remove('fade'); // Fade IN
                     
                     // Play Bot Filler Audio
                     var fillerAudio = new Audio(fillerAudios[(Math.floor(Math.random() * fillerAudios.length))]);
@@ -912,7 +912,7 @@
                     speechText.innerHTML = "Time to ban " + twitchUserName + "!";
                     processSpeechText();
                     changeSpeechTextContainerBackround('normal', 'juliBan');
-                    speechTextContainer.classList.toggle('fade');
+                    speechTextContainer.classList.remove('fade'); // Fade IN
                     if (playAlertAudio) {
                         var alertAudio = new Audio(alertAudioSource);
                         alertAudio.addEventListener("ended", function() {
@@ -925,7 +925,7 @@
                             }).catch(error => {
                                 // Autoplay was prevented.
                                 console.error(error);
-                                speechTextContainer.classList.toggle('fade');
+                                speechTextContainer.classList.add('fade'); // Fade OUT
                                 setTimeout(function() {
                                     changeSpeechTextContainerBackround('juliBan', 'normal');
                                     endProcessing();
@@ -949,7 +949,7 @@
                         .then(blob => {
                             speechText.innerHTML = voiceText.replace(endingDialogue,'');
                             processSpeechText();
-                            if (!isBot) { speechTextContainer.classList.toggle('fade'); }
+                            if (!isBot) { speechTextContainer.classList.remove('fade'); } // Fade IN
                             if (playAlertAudio) {
                                 var alertAudio = new Audio(alertAudioSource);
                                 alertAudio.addEventListener("ended", function() {
@@ -964,7 +964,7 @@
                                     }).catch(error => {
                                         // Autoplay was prevented.
                                         console.error(error);
-                                        speechTextContainer.classList.toggle('fade');
+                                        speechTextContainer.classList.add('fade'); // Fade OUT
                                         endProcessing();
                                     });
                                 }
@@ -1001,7 +1001,7 @@
             function playTTSAudio(ttsAudioSource, changeBackground, fromClassPrefix, toClassPrefix) {
                 var speechAudio = new Audio(ttsAudioSource);
                 speechAudio.addEventListener("ended", function() {
-                    speechTextContainer.classList.toggle('fade');
+                    speechTextContainer.classList.add('fade'); // Fade OUT
                     setTimeout(function() {
                         if (changeBackground && fromClassPrefix && toClassPrefix) { changeSpeechTextContainerBackround(fromClassPrefix, toClassPrefix); }
                         endProcessing();
@@ -1014,7 +1014,7 @@
                     }).catch(error => {
                         // Autoplay was prevented.
                         console.error(error);
-                        speechTextContainer.classList.toggle('fade');
+                        speechTextContainer.classList.add('fade'); // Fade OUT
                         setTimeout(function() {
                             if (changeBackground && fromClassPrefix && toClassPrefix) { changeSpeechTextContainerBackround(fromClassPrefix, toClassPrefix); }
                             endProcessing();
