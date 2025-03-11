@@ -1031,8 +1031,10 @@
                 var speechAudio = new Audio(ttsAudioSource);
                 speechAudio.addEventListener("ended", function() {
                     if (hasBackgroundMusic) {
-                        fadeAudio(backgroundMusicAudio, 'out', 1000, 0.37);
-                        setTimeout(() => backgroundMusicAudio.pause(), 2000);
+                        setTimeout(() => {
+                            fadeAudio(backgroundMusicAudio, 'out', 2000, 0.37);
+                            setTimeout(() => backgroundMusicAudio.pause(), 2000);
+                        }, 1000);
                     }
                     speechTextContainer.classList.add('fade'); // Fade OUT
                     setTimeout(function() {
