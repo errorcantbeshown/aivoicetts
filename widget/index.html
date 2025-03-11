@@ -1147,13 +1147,24 @@
                 return resultArray;
             }
 
-            function fadeAudio(audioElement, type, duration = 2000, maxVolume = 1.0) {
-                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                const track = audioCtx.createMediaElementSource(audioElement);
-                const gainNode = audioCtx.createGain();
-                track.connect(gainNode).connect(audioCtx.destination);
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const gainNodes = new Map();
 
+            function getGainNode(audioElement) {
+                if (!gainNodes.has(audioElement)) {
+                    const track = audioCtx.createMediaElementSource(audioElement);
+                    const gainNode = audioCtx.createGain();
+                    track.connect(gainNode).connect(audioCtx.destination);
+                    gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+                    gainNodes.set(audioElement, gainNode);
+                }
+                return gainNodes.get(audioElement);
+            }
+
+            function fadeAudio(audioElement, type, duration = 2000, maxVolume = 0.8) {
+                const gainNode = getGainNode(audioElement);
                 const currentTime = audioCtx.currentTime;
+                gainNode.gain.cancelScheduledValues(currentTime);
                 gainNode.gain.setValueAtTime(type === 'in' ? 0 : maxVolume, currentTime);
                 gainNode.gain.linearRampToValueAtTime(type === 'in' ? maxVolume : 0, currentTime + duration / 1000);
             }
