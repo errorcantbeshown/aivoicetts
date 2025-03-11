@@ -796,8 +796,8 @@
 
                 const preppedUserMessage = removeCheerWords(message).replace('[' + character + ']','').replace(/"/g, '').replace(/[“”]/g, '').replace(/[‘’]/g, '').trim();
 
-                const userCharacterInstructions = "";
-                const messageToAI = "";
+                let userCharacterInstructions = "";
+                let messageToAI = "";
                 if (character == "noir") {
                     userCharacterInstructions = userNoirInstructions;
                     messageToAI = "The statement you should turn into a short monologue is in the following french brackets: {" + preppedUserMessage + "}";
