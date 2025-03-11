@@ -55,6 +55,13 @@
     "dialogue_endings": "[]",
     "voice_volume": 1.00
   },
+  "noir": {
+    "voice_id": "qNkzaJoHLLdpvgh5tISm",
+    "voice_settings": "{\"use_speaker_boost\":true,\"stability\":0.36,\"style\":0.49,\"similarity_boost\":0.4}",
+    "model_id": "eleven_turbo_v2",
+    "dialogue_endings": "[]",
+    "voice_volume": 0.50
+  },
   "skeletor": {
     "voice_id": "ZFUDJoAF72mngWJrCAn6",
     "voice_settings": "{\"use_speaker_boost\":true,\"stability\":0.5,\"style\":0.4,\"similarity_boost\":0.75}",
