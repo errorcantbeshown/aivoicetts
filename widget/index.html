@@ -1032,15 +1032,22 @@
                 speechAudio.addEventListener("ended", function() {
                     if (hasBackgroundMusic) {
                         setTimeout(() => {
+                            speechTextContainer.classList.add('fade'); // Fade OUT
                             fadeAudio(backgroundMusicAudio, 'out', 2000, 0.37);
-                            setTimeout(() => backgroundMusicAudio.pause(), 2000);
+                            setTimeout(() => {
+                                backgroundMusicAudio.pause();
+                                hasBackgroundMusic = false;
+                                if (changeBackground && fromClassPrefix && toClassPrefix) { changeSpeechTextContainerBackround(fromClassPrefix, toClassPrefix); }
+                                endProcessing();
+                            }, 2000);
+                        }, 1000);
+                    } else {
+                        speechTextContainer.classList.add('fade'); // Fade OUT
+                        setTimeout(function() {
+                            if (changeBackground && fromClassPrefix && toClassPrefix) { changeSpeechTextContainerBackround(fromClassPrefix, toClassPrefix); }
+                            endProcessing();
                         }, 1000);
                     }
-                    speechTextContainer.classList.add('fade'); // Fade OUT
-                    setTimeout(function() {
-                        if (changeBackground && fromClassPrefix && toClassPrefix) { changeSpeechTextContainerBackround(fromClassPrefix, toClassPrefix); }
-                        endProcessing();
-                    }, 1000);
                 });
                 var speechPlayPromise = speechAudio.play();
                 if (speechPlayPromise !== undefined) {
