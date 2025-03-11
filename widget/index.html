@@ -89,6 +89,7 @@
             var userBotBackgroundImageURL = "../assets/images/bot-butler_placeholder.png";
             var userBotInstructions = "";
             var userLawyerInstructions = "";
+            var userNoirInstructions = "";
             var userKeyString = "";
             var userAppClientID = "";
             var userTwitchID = "";
@@ -97,6 +98,8 @@
             var cheerWords;
             var twitchUserName = "Anonymous";
             
+            var hasBackgroundMusic = false;
+            var backgroundMusicAudio;
             const alertAudioSource = "../assets/audio/twitch-bits-donation-sound-effect-sfx.mp3";
 
             var isBot = false;
@@ -152,6 +155,10 @@
             }
 
             function endProcessing() {
+                if (hasBackgroundMusic) {
+                    backgroundMusicAudio.pause();
+                    hasBackgroundMusic = false;
+                }
                 isProcessing = false;
                 processEventQueue(); // Process the next event in the queue
             }
@@ -275,7 +282,7 @@
             // Searches for User ID in database and sets user info variables
             function getUserInfo(userID) {
                 gapi.client.request({
-                    path: 'https://content-sheets.googleapis.com/v4/spreadsheets/' + userInfoSheetID + '/values/Sheet1!A2:L',
+                    path: 'https://content-sheets.googleapis.com/v4/spreadsheets/' + userInfoSheetID + '/values/Sheet1!A2:M',
                     method: 'GET',
                     headers: {
                         Authorization: 'Bearer ' + adminAccessToken,
@@ -300,7 +307,8 @@
                                 values[userInfoIndex[0]][8],
                                 values[userInfoIndex[0]][9],
                                 values[userInfoIndex[0]][10],
-                                values[userInfoIndex[0]][11]
+                                values[userInfoIndex[0]][11],
+                                values[userInfoIndex[0]][12]
                             ];
                             userName = userInfoValues[1];
                             userSLToken = userInfoValues[2];
@@ -312,6 +320,7 @@
                             userTwitchID = userInfoValues[9];
                             channelPointRewardID = userInfoValues[10];
                             userLawyerInstructions = userInfoValues[11];
+                            userNoirInstructions = userInfoValues[12];
 
                             // Bot Background Image
                             if (userInfoValues[5]) { userBotBackgroundImageURL = userInfoValues[5]; }
@@ -786,12 +795,32 @@
                 };
 
                 const preppedUserMessage = removeCheerWords(message).replace('[' + character + ']','').replace(/"/g, '').replace(/[“”]/g, '').replace(/[‘’]/g, '').trim();
-                const messageToAI = "Your client's Twitch username is \"" + twitchUserName + "\" and the message they just gave you is in the following french brackets: {" + preppedUserMessage + "}";
+
+                const userCharacterInstructions = "";
+                const messageToAI = "";
+                if (character == "noir") {
+                    userCharacterInstructions = userNoirInstructions;
+                    messageToAI = "The statement you should turn into a short monologue is in the following french brackets: {" + preppedUserMessage + "}";
+                    hasBackgroundMusic = true;
+                    backgroundMusicAudio = new Audio("../assets/audio/noir_dark-night-jazz-background-music.mp3");
+                    var backgroundMusicPlayPromise = backgroundMusicAudio.play();
+                    if (backgroundMusicPlayPromise !== undefined) {
+                        backgroundMusicPlayPromise.then(_ => {
+                            fadeAudio(backgroundMusicAudio, 'in', 2000, 0.37);
+                        }).catch(error => {
+                            hasBackgroundMusic = false;
+                            console.error(error);
+                        });
+                    }
+                } else {
+                    userCharacterInstructions = userLawyerInstructions;
+                    messageToAI = "Your client's Twitch username is \"" + twitchUserName + "\" and the message they just gave you is in the following french brackets: {" + preppedUserMessage + "}";
+                }
 
                 const data = {
                     model: "gpt-4o",
                     messages: [
-                        { role: "system", content: userLawyerInstructions },
+                        { role: "system", content: userCharacterInstructions },
                         { role: "user", content: messageToAI }
                     ]
                 };
@@ -841,7 +870,7 @@
 
                     if (voiceText) {
                         // Convert the above text to speech using the indicated voice
-                        initiateTTS(true, voiceID, voiceSettings, voiceText, modelID);
+                        initiateTTS(!hasBackgroundMusic, voiceID, voiceSettings, voiceText, modelID);
                     } else {
                         // Handle the case where there is no message
                         console.log("No message for TTS.");
@@ -1001,6 +1030,10 @@
             function playTTSAudio(ttsAudioSource, changeBackground, fromClassPrefix, toClassPrefix) {
                 var speechAudio = new Audio(ttsAudioSource);
                 speechAudio.addEventListener("ended", function() {
+                    if (hasBackgroundMusic) {
+                        fadeAudio(backgroundMusicAudio, 'out', 1000, 0.37);
+                        setTimeout(() => backgroundMusicAudio.pause(), 2000);
+                    }
                     speechTextContainer.classList.add('fade'); // Fade OUT
                     setTimeout(function() {
                         if (changeBackground && fromClassPrefix && toClassPrefix) { changeSpeechTextContainerBackround(fromClassPrefix, toClassPrefix); }
@@ -1112,6 +1145,17 @@
                 }
 
                 return resultArray;
+            }
+
+            function fadeAudio(audioElement, type, duration = 2000, maxVolume = 1.0) {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const track = audioCtx.createMediaElementSource(audioElement);
+                const gainNode = audioCtx.createGain();
+                track.connect(gainNode).connect(audioCtx.destination);
+
+                const currentTime = audioCtx.currentTime;
+                gainNode.gain.setValueAtTime(type === 'in' ? 0 : maxVolume, currentTime);
+                gainNode.gain.linearRampToValueAtTime(type === 'in' ? maxVolume : 0, currentTime + duration / 1000);
             }
         </script>
 
