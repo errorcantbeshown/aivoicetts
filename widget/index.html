@@ -1147,16 +1147,17 @@
                 return resultArray;
             }
 
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const gainNodes = new Map();
+            var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            var gainNodes = new Map();
 
             function getGainNode(audioElement) {
                 if (!gainNodes.has(audioElement)) {
-                    const track = audioCtx.createMediaElementSource(audioElement);
                     const gainNode = audioCtx.createGain();
-                    track.connect(gainNode).connect(audioCtx.destination);
                     gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
                     gainNodes.set(audioElement, gainNode);
+
+                    const track = audioCtx.createMediaElementSource(audioElement);
+                    track.connect(gainNode).connect(audioCtx.destination);
                 }
                 return gainNodes.get(audioElement);
             }
