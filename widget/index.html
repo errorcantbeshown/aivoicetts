@@ -662,8 +662,8 @@
 
                 // Perform Voice Name checks and Voice Retrieval if not "juli"
                 if (voiceName != "juli") {
-                    // Have AI rewrite the message and takeover TTS if the Voice Name is "lawyer"
-                    if (voiceName == "lawyer") {
+                    // Have AI rewrite the message and takeover TTS if the Voice Name is "lawyer" or "noir"
+                    if (voiceName == "lawyer" || voiceName == "noir") {
                         rewriteMessageUsingAI(voiceName, channelPointMessage);
                         return;
                     } else {
@@ -726,8 +726,8 @@
 
                 // Perform Voice Name checks and Voice Retrieval if not "juli"
                 if (voiceName != "juli") {
-                    // Have AI rewrite the message and takeover TTS if the Voice Name is "lawyer"
-                    if (voiceName == "lawyer") {
+                    // Have AI rewrite the message and takeover TTS if the Voice Name is "lawyer" or "noir"
+                    if (voiceName == "lawyer" || voiceName == "noir") {
                         rewriteMessageUsingAI(voiceName, bitsMessage);
                         return;
                     } else {
