@@ -1029,6 +1029,7 @@
 
             function playTTSAudio(ttsAudioSource, changeBackground, fromClassPrefix, toClassPrefix) {
                 var speechAudio = new Audio(ttsAudioSource);
+                speechAudio.volume = voiceVolume;
                 speechAudio.addEventListener("ended", function() {
                     if (hasBackgroundMusic) {
                         setTimeout(() => {
