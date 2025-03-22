@@ -1175,6 +1175,9 @@
 
                 const currentTime = audioCtx.currentTime;
                 gainNode.gain.cancelScheduledValues(currentTime); // Cancel previous fades
+
+                audioElement.volume = maxVolume;
+                
                 gainNode.gain.setValueAtTime(type === 'in' ? 0 : maxVolume, currentTime);
                 gainNode.gain.linearRampToValueAtTime(type === 'in' ? maxVolume : 0, currentTime + duration / 1000);
             }
