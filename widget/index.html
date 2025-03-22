@@ -806,7 +806,7 @@
                     var backgroundMusicPlayPromise = backgroundMusicAudio.play();
                     if (backgroundMusicPlayPromise !== undefined) {
                         backgroundMusicPlayPromise.then(_ => {
-                            fadeAudio(backgroundMusicAudio, 'in', 2000, 0.25);
+                            fadeAudio(backgroundMusicAudio, 'in', 2000, 0.35);
                         }).catch(error => {
                             hasBackgroundMusic = false;
                             console.error(error);
@@ -1034,7 +1034,7 @@
                     if (hasBackgroundMusic) {
                         setTimeout(() => {
                             speechTextContainer.classList.add('fade'); // Fade OUT
-                            fadeAudio(backgroundMusicAudio, 'out', 2000, 0.25);
+                            fadeAudio(backgroundMusicAudio, 'out', 2000, 0.35);
                             setTimeout(() => {
                                 backgroundMusicAudio.pause();
                                 hasBackgroundMusic = false;
