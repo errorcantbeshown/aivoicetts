@@ -1,4 +1,11 @@
 {
+  "aphrodite": {
+    "voice_id": "eVItLK1UvXctxuaRV2Oq",
+    "voice_settings": "{\"use_speaker_boost\":true,\"stability\":0.24,\"style\":0.0,\"similarity_boost\":0.69}",
+    "model_id": "eleven_multilingual_v2",
+    "dialogue_endings": "[]",
+    "voice_volume": 0.60
+  },
   "butler": {
     "voice_id": "9ezthRGvvjquu3KtNxd9",
     "voice_settings": "{\"use_speaker_boost\":true,\"stability\":0.5,\"style\":0.0,\"similarity_boost\":0.75}",
