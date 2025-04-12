@@ -90,6 +90,7 @@
             var userBotInstructions = "";
             var userLawyerInstructions = "";
             var userNoirInstructions = "";
+            var userKimInstructions = "Take the following line(s) of dialogue and modify the spelling so they will sound like they are being spoken with a French accent when read aloud by a text-to-speech system. Use slightly phonetic spelling to reflect a natural-sounding French accent, but keep the meaning clear and don't over-exaggerate. Reply with only the modified line(s), nothing else.";
             var userKeyString = "";
             var userAppClientID = "";
             var userTwitchID = "";
@@ -662,8 +663,8 @@
 
                 // Perform Voice Name checks and Voice Retrieval if not "juli"
                 if (voiceName != "juli") {
-                    // Have AI rewrite the message and takeover TTS if the Voice Name is "lawyer" or "noir"
-                    if (voiceName == "lawyer" || voiceName == "noir") {
+                    // Have AI rewrite the message and takeover TTS if the Voice Name is "lawyer", "noir", or "kim"
+                    if (voiceName == "lawyer" || voiceName == "noir" || voiceName == "kim") {
                         rewriteMessageUsingAI(voiceName, channelPointMessage);
                         return;
                     } else {
@@ -726,8 +727,8 @@
 
                 // Perform Voice Name checks and Voice Retrieval if not "juli"
                 if (voiceName != "juli") {
-                    // Have AI rewrite the message and takeover TTS if the Voice Name is "lawyer" or "noir"
-                    if (voiceName == "lawyer" || voiceName == "noir") {
+                    // Have AI rewrite the message and takeover TTS if the Voice Name is "lawyer", "noir", or "kim"
+                    if (voiceName == "lawyer" || voiceName == "noir" || voiceName == "kim") {
                         rewriteMessageUsingAI(voiceName, bitsMessage);
                         return;
                     } else {
@@ -806,12 +807,15 @@
                     var backgroundMusicPlayPromise = backgroundMusicAudio.play();
                     if (backgroundMusicPlayPromise !== undefined) {
                         backgroundMusicPlayPromise.then(_ => {
-                            fadeAudio(backgroundMusicAudio, 'in', 2000, 0.35);
+                            fadeAudio(backgroundMusicAudio, 'in', 2000, 0.25);
                         }).catch(error => {
                             hasBackgroundMusic = false;
                             console.error(error);
                         });
                     }
+                } else if (character == "kim") {
+                    userCharacterInstructions = userKimInstructions;
+                    messageToAI = "Lines:\n" + preppedUserMessage;
                 } else {
                     userCharacterInstructions = userLawyerInstructions;
                     messageToAI = "Your client's Twitch username is \"" + twitchUserName + "\" and the message they just gave you is in the following french brackets: {" + preppedUserMessage + "}";
@@ -1034,7 +1038,7 @@
                     if (hasBackgroundMusic) {
                         setTimeout(() => {
                             speechTextContainer.classList.add('fade'); // Fade OUT
-                            fadeAudio(backgroundMusicAudio, 'out', 2000, 0.35);
+                            fadeAudio(backgroundMusicAudio, 'out', 2000, 0.25);
                             setTimeout(() => {
                                 backgroundMusicAudio.pause();
                                 hasBackgroundMusic = false;
@@ -1177,7 +1181,7 @@
                 gainNode.gain.cancelScheduledValues(currentTime); // Cancel previous fades
 
                 audioElement.volume = maxVolume;
-                
+
                 gainNode.gain.setValueAtTime(type === 'in' ? 0 : maxVolume, currentTime);
                 gainNode.gain.linearRampToValueAtTime(type === 'in' ? maxVolume : 0, currentTime + duration / 1000);
             }
