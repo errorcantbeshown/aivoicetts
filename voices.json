@@ -41,6 +41,13 @@
     "dialogue_endings": "[]",
     "voice_volume": 0.50
   },
+  "heist": {
+    "voice_id": "1TE7ou3jyxHsyRehUuMB",
+    "voice_settings": "{\"stability\":0.3,\"similarity_boost\":0.8}",
+    "model_id": "eleven_flash_v2_5",
+    "dialogue_endings": "[]",
+    "voice_volume": 0.75
+  },
   "hifumi": {
     "voice_id": "11nykyL7h0pYd7hh1lA5",
     "voice_settings": "{\"use_speaker_boost\":true,\"stability\":0.5,\"style\":0.4,\"similarity_boost\":0.75}",
