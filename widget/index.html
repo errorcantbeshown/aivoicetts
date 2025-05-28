@@ -90,6 +90,7 @@
             var userBotInstructions = "";
             var userLawyerInstructions = "";
             var userNoirInstructions = "";
+            var userHeistInstructions = "";
             var userKimInstructions = "Take the following line(s) of dialogue and modify the spelling so they will sound like they are being spoken with a French accent when read aloud by a text-to-speech system. Use slightly phonetic spelling to reflect a natural-sounding French accent, but keep the meaning clear and don't over-exaggerate. Reply with only the modified line(s), nothing else.";
             var userKeyString = "";
             var userAppClientID = "";
@@ -283,7 +284,7 @@
             // Searches for User ID in database and sets user info variables
             function getUserInfo(userID) {
                 gapi.client.request({
-                    path: 'https://content-sheets.googleapis.com/v4/spreadsheets/' + userInfoSheetID + '/values/Sheet1!A2:M',
+                    path: 'https://content-sheets.googleapis.com/v4/spreadsheets/' + userInfoSheetID + '/values/Sheet1!A2:N',
                     method: 'GET',
                     headers: {
                         Authorization: 'Bearer ' + adminAccessToken,
@@ -309,7 +310,8 @@
                                 values[userInfoIndex[0]][9],
                                 values[userInfoIndex[0]][10],
                                 values[userInfoIndex[0]][11],
-                                values[userInfoIndex[0]][12]
+                                values[userInfoIndex[0]][12],
+                                values[userInfoIndex[0]][13]
                             ];
                             userName = userInfoValues[1];
                             userSLToken = userInfoValues[2];
@@ -322,6 +324,7 @@
                             channelPointRewardID = userInfoValues[10];
                             userLawyerInstructions = userInfoValues[11];
                             userNoirInstructions = userInfoValues[12];
+                            userHeistInstructions = userInfoValues[13];
 
                             // Bot Background Image
                             if (userInfoValues[5]) { userBotBackgroundImageURL = userInfoValues[5]; }
@@ -663,8 +666,8 @@
 
                 // Perform Voice Name checks and Voice Retrieval if not "juli"
                 if (voiceName != "juli") {
-                    // Have AI rewrite the message and takeover TTS if the Voice Name is "lawyer", "noir", or "kim"
-                    if (voiceName == "lawyer" || voiceName == "noir" || voiceName == "kim") {
+                    // Have AI rewrite the message and takeover TTS if the Voice Name is "lawyer", "noir", "heist", or "kim"
+                    if (voiceName == "lawyer" || voiceName == "noir" || voiceName == "heist" || voiceName == "kim") {
                         rewriteMessageUsingAI(voiceName, channelPointMessage);
                         return;
                     } else {
@@ -728,7 +731,7 @@
                 // Perform Voice Name checks and Voice Retrieval if not "juli"
                 if (voiceName != "juli") {
                     // Have AI rewrite the message and takeover TTS if the Voice Name is "lawyer", "noir", or "kim"
-                    if (voiceName == "lawyer" || voiceName == "noir" || voiceName == "kim") {
+                    if (voiceName == "lawyer" || voiceName == "noir" || voiceName == "heist" || voiceName == "kim") {
                         rewriteMessageUsingAI(voiceName, bitsMessage);
                         return;
                     } else {
@@ -804,6 +807,20 @@
                     messageToAI = "The statement you should turn into a short monologue is in the following french brackets: {" + preppedUserMessage + "}";
                     hasBackgroundMusic = true;
                     backgroundMusicAudio = new Audio("../assets/audio/noir_dark-night-jazz-background-music.mp3");
+                    var backgroundMusicPlayPromise = backgroundMusicAudio.play();
+                    if (backgroundMusicPlayPromise !== undefined) {
+                        backgroundMusicPlayPromise.then(_ => {
+                            fadeAudio(backgroundMusicAudio, 'in', 2000, 0.25);
+                        }).catch(error => {
+                            hasBackgroundMusic = false;
+                            console.error(error);
+                        });
+                    }
+                } else if (character == "heist") {
+                    userCharacterInstructions = userHeistInstructions;
+                    messageToAI = "You leader's name is \"" + twitchUserName + "\" and their statement is in the following french brackets: {" + preppedUserMessage + "}";
+                    hasBackgroundMusic = true;
+                    backgroundMusicAudio = new Audio("../assets/audio/heist_here-for-a-good-time-background-music.mp3");
                     var backgroundMusicPlayPromise = backgroundMusicAudio.play();
                     if (backgroundMusicPlayPromise !== undefined) {
                         backgroundMusicPlayPromise.then(_ => {
