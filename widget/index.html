@@ -102,6 +102,8 @@
             
             var hasBackgroundMusic = false;
             var backgroundMusicAudio;
+            var backgroundMusicVolume;
+            var backgroundMusicFadeOutTime = 2000;
             const alertAudioSource = "../assets/audio/twitch-bits-donation-sound-effect-sfx.mp3";
 
             var isBot = false;
@@ -807,10 +809,12 @@
                     messageToAI = "The statement you should turn into a short monologue is in the following french brackets: {" + preppedUserMessage + "}";
                     hasBackgroundMusic = true;
                     backgroundMusicAudio = new Audio("../assets/audio/noir_dark-night-jazz-background-music.mp3");
+                    backgroundMusicVolume = 0.25;
+                    backgroundMusicFadeOutTime = 2000;
                     var backgroundMusicPlayPromise = backgroundMusicAudio.play();
                     if (backgroundMusicPlayPromise !== undefined) {
                         backgroundMusicPlayPromise.then(_ => {
-                            fadeAudio(backgroundMusicAudio, 'in', 2000, 0.25);
+                            fadeAudio(backgroundMusicAudio, 'in', 2000, backgroundMusicVolume);
                         }).catch(error => {
                             hasBackgroundMusic = false;
                             console.error(error);
@@ -821,10 +825,12 @@
                     messageToAI = "You leader's name is \"" + twitchUserName + "\" and their statement is in the following french brackets: {" + preppedUserMessage + "}";
                     hasBackgroundMusic = true;
                     backgroundMusicAudio = new Audio("../assets/audio/heist_here-for-a-good-time-background-music.mp3");
+                    backgroundMusicVolume = 0.4;
+                    backgroundMusicFadeOutTime = 5000;
                     var backgroundMusicPlayPromise = backgroundMusicAudio.play();
                     if (backgroundMusicPlayPromise !== undefined) {
                         backgroundMusicPlayPromise.then(_ => {
-                            fadeAudio(backgroundMusicAudio, 'in', 2000, 0.25);
+                            fadeAudio(backgroundMusicAudio, 'in', 2000, backgroundMusicVolume);
                         }).catch(error => {
                             hasBackgroundMusic = false;
                             console.error(error);
@@ -1055,13 +1061,13 @@
                     if (hasBackgroundMusic) {
                         setTimeout(() => {
                             speechTextContainer.classList.add('fade'); // Fade OUT
-                            fadeAudio(backgroundMusicAudio, 'out', 2000, 0.25);
+                            fadeAudio(backgroundMusicAudio, 'out', backgroundMusicFadeOutTime, backgroundMusicVolume);
                             setTimeout(() => {
                                 backgroundMusicAudio.pause();
                                 hasBackgroundMusic = false;
                                 if (changeBackground && fromClassPrefix && toClassPrefix) { changeSpeechTextContainerBackround(fromClassPrefix, toClassPrefix); }
                                 endProcessing();
-                            }, 2000);
+                            }, backgroundMusicFadeOutTime);
                         }, 1000);
                     } else {
                         speechTextContainer.classList.add('fade'); // Fade OUT
