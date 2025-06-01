@@ -1268,6 +1268,8 @@
                     // If already set up, just update volume
                     audioElement.reverbSetup.masterGain.gain.setValueAtTime(voiceVolume, audioCtx.currentTime);
                 }
+
+                return audioElement.play();
             }
 
             function playReverbTTSAudio(ttsAudioSource, changeBackground, fromClassPrefix, toClassPrefix) {
