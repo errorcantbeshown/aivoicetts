@@ -1248,8 +1248,8 @@
 
                     // Set up impulse response and gains
                     convolver.buffer = impulseBuffer;
-                    dryGain.gain.value = 0.5;
-                    wetGain.gain.value = 0.5;
+                    dryGain.gain.value = 0.9;
+                    wetGain.gain.value = 0.1;
                     masterGain.gain.value = volume; // Apply user volume
 
                     // Connect audio graph: (dry + wet) → master → destination
