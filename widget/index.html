@@ -655,66 +655,70 @@
             }
 
             function resolveChannelPointTTS(channelPointAmount, channelPointMessage) {
-                // Retrieve Voice Name from the Channel Point Message
-                var voiceName = extractVoiceName(channelPointMessage);
-                
-                // Set the available Voice Names based on Amount
-                var availableVoiceNames = (channelPointAmount >= premiumVoiceBitsAmount ? unrestrictedVoiceNames : standardVoiceNames);
+                if (twitchUserName.toLowerCase() == "errorcantbeshown" && channelPointMessage.includes("!resetTTS")) {
+                    window.location.reload(true);
+                } else {
+                    // Retrieve Voice Name from the Channel Point Message
+                    var voiceName = extractVoiceName(channelPointMessage);
                     
-                // Initialize Necessary Variables for Voice
-                var voiceID = null;
-                var voiceSettings = "";
-                var modelID = "";
-
-                // Perform Voice Name checks and Voice Retrieval if not "juli"
-                if (voiceName != "juli") {
-                    // Have AI rewrite the message and takeover TTS if the Voice Name is "lawyer", "noir", "heist", or "kim"
-                    if (voiceName == "lawyer" || voiceName == "noir" || voiceName == "heist" || voiceName == "kim") {
-                        rewriteMessageUsingAI(voiceName, channelPointMessage);
-                        return;
-                    } else {
-                        var voice;
+                    // Set the available Voice Names based on Amount
+                    var availableVoiceNames = (channelPointAmount >= premiumVoiceBitsAmount ? unrestrictedVoiceNames : standardVoiceNames);
                         
-                        // Check if Voice Name is an available choice or "random" 
-                        if (voiceName == "random") {
-                            voiceName = availableVoiceNames[(Math.floor(Math.random() * availableVoiceNames.length))];
-                            voice = voices[voiceName];
-                        } else if (!availableVoiceNames.includes(voiceName)) {
-                            console.log("Voice Name \"" + voiceName + "\" NOT an available choice.")
-                            voice = voices["will"];
-                        } else { voice = voices[voiceName]; }
-                        
-                        // Set Voice values accordingly
-                        voiceID = voice.voice_id;
-                        voiceSettings = voice.voice_settings;
-                        modelID = voice.model_id;
-                        voiceVolume = voice.voice_volume;
-
-                        // If Voice has different dialogue endings, add one to the end of the Message
-                        if (voice.dialogue_endings.length != 0) {
-                            endingDialogue = voice.dialogue_endings[(Math.floor(Math.random() * voice.dialogue_endings.length))];
-                            channelPointMessage += endingDialogue;
+                    // Initialize Necessary Variables for Voice
+                    var voiceID = null;
+                    var voiceSettings = "";
+                    var modelID = "";
+    
+                    // Perform Voice Name checks and Voice Retrieval if not "juli"
+                    if (voiceName != "juli") {
+                        // Have AI rewrite the message and takeover TTS if the Voice Name is "lawyer", "noir", "heist", or "kim"
+                        if (voiceName == "lawyer" || voiceName == "noir" || voiceName == "heist" || voiceName == "kim") {
+                            rewriteMessageUsingAI(voiceName, channelPointMessage);
+                            return;
+                        } else {
+                            var voice;
+                            
+                            // Check if Voice Name is an available choice or "random" 
+                            if (voiceName == "random") {
+                                voiceName = availableVoiceNames[(Math.floor(Math.random() * availableVoiceNames.length))];
+                                voice = voices[voiceName];
+                            } else if (!availableVoiceNames.includes(voiceName)) {
+                                console.log("Voice Name \"" + voiceName + "\" NOT an available choice.")
+                                voice = voices["will"];
+                            } else { voice = voices[voiceName]; }
+                            
+                            // Set Voice values accordingly
+                            voiceID = voice.voice_id;
+                            voiceSettings = voice.voice_settings;
+                            modelID = voice.model_id;
+                            voiceVolume = voice.voice_volume;
+    
+                            // If Voice has different dialogue endings, add one to the end of the Message
+                            if (voice.dialogue_endings.length != 0) {
+                                endingDialogue = voice.dialogue_endings[(Math.floor(Math.random() * voice.dialogue_endings.length))];
+                                channelPointMessage += endingDialogue;
+                            }
                         }
-                    }
-                } else { voiceID = voiceName; }
-                
-                // Check Voice ID
-                if (voiceID) {
-                    // Remove any cheers and voice name (including brackets) from the bits message
-                    let voiceText = removeCheerWords(channelPointMessage).replace('[' + voiceName + ']','').replace('[random]','').trim();
-
-                    if (voiceText) {
-                        // Convert the above text to speech using the indicated voice
-                        initiateTTS(true, voiceID, voiceSettings, voiceText, modelID);
+                    } else { voiceID = voiceName; }
+                    
+                    // Check Voice ID
+                    if (voiceID) {
+                        // Remove any cheers and voice name (including brackets) from the bits message
+                        let voiceText = removeCheerWords(channelPointMessage).replace('[' + voiceName + ']','').replace('[random]','').trim();
+    
+                        if (voiceText) {
+                            // Convert the above text to speech using the indicated voice
+                            initiateTTS(true, voiceID, voiceSettings, voiceText, modelID);
+                        } else {
+                            // Handle the case where there is no message
+                            console.log("No message for TTS.");
+                            endProcessing();
+                        }
                     } else {
-                        // Handle the case where there is no message
-                        console.log("No message for TTS.");
+                        // Handle the case where name matches no id
+                        console.error("No ID found for voice name.");
                         endProcessing();
                     }
-                } else {
-                    // Handle the case where name matches no id
-                    console.error("No ID found for voice name.");
-                    endProcessing();
                 }
             }
 
