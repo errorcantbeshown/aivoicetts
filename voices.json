@@ -118,7 +118,7 @@
     "voice_volume": 0.75
   },
   "will": {
-    "voice_id": "bIHbv24MWmeRgasZH58o",
+    "voice_id": "7QN34D2r3hCNwbOYIeK0",
     "voice_settings": "{\"use_speaker_boost\":true,\"stability\":0.5,\"style\":0.0,\"similarity_boost\":0.75}",
     "model_id": "eleven_multilingual_v2",
     "dialogue_endings": "[]",
