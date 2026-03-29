@@ -63,7 +63,7 @@
     "voice_volume": 0.50
   },
   "lawyer": {
-    "voice_id": "zGw1MayuXJEVWol6mFfg",
+    "voice_id": "lnbHqRFwMGU7M66Bf2ny",
     "voice_settings": "{\"use_speaker_boost\":true,\"stability\":0.46,\"style\":0.64,\"similarity_boost\":0.77}",
     "model_id": "eleven_multilingual_v2",
     "dialogue_endings": "[]",
