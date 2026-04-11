@@ -46,7 +46,7 @@
     "voice_settings": "{\"stability\":0.3,\"similarity_boost\":0.8}",
     "model_id": "eleven_flash_v2_5",
     "dialogue_endings": "[]",
-    "voice_volume": 0.75
+    "voice_volume": 0.55
   },
   "hifumi": {
     "voice_id": "11nykyL7h0pYd7hh1lA5",
